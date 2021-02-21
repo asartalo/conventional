@@ -1,4 +1,4 @@
-part of 'conventional.dart';
+part of '../conventional.dart';
 
 Version buildlessVersion(Version version) {
   return Version.parse(

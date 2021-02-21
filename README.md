@@ -2,6 +2,8 @@
 
 A simple and light-weight library for parsing conventional commits and generating changelogs from them.
 
+**NOTE:** At the moment, this library is only used on my projects. The Conventional Commit parser is not made to be comprehensive.
+
 ## Usage
 
 A simple usage example:
