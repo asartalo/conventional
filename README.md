@@ -1,4 +1,7 @@
+# Conventional
+
 A simple and light-weight library for parsing conventional commits and generating changelogs from them.
+
 ## Usage
 
 A simple usage example:
