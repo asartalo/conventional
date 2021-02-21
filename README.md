@@ -11,7 +11,14 @@ import 'package:conventional/conventional.dart';
 
 main() {
   final List<Commit> commits = Commit.parseCommits(testLog);
-  if (hasReleasableCommits(commits))
+  if (hasReleasableCommits(commits)) {
+    writeChangelog(
+      commits: commits,
+      changelogFilePath: 'CHANGELOG.md',
+      version: '1.2.0',
+      now: DateTime.now(),
+    );
+  }
 }
 ```
 
