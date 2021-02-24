@@ -3,6 +3,45 @@ import 'package:test/test.dart';
 
 // ignore_for_file: avoid_print
 
+void main() {
+  group('Commit.parse()', () {
+    group('successful parsing', () {
+      testData.forEach((key, data) {
+        test('parses $key correctly', () {
+          expect(Commit.parse(data.input), equals(data.output));
+        });
+      });
+    });
+  });
+
+  group('Commit.parseCommits()', () {
+    late List<Commit> commits;
+
+    setUp(() {
+      commits = Commit.parseCommits(testLog);
+    });
+
+    test('it parses all logs', () {
+      expect(commits.length, equals(6));
+    });
+
+    test('it correctly parses logs', () {
+      expect(
+        commits.first.id,
+        equals('fc9d8117b1074c3c965c5c1ccf845d784c026ac7'),
+      );
+      expect(
+        commits.last.id,
+        equals('18bf98f5cddfecc69b26285b6edca063f1a8b1ec'),
+      );
+      expect(
+        commits[3].body,
+        endsWith('BREAKING CHANGE: uses null-safety'),
+      );
+    });
+  });
+}
+
 const testLog = '''
 commit fc9d8117b1074c3c965c5c1ccf845d784c026ac7
 Author: Jane Doe <jane.doe@example.com>
@@ -167,40 +206,3 @@ Date:   Mon Feb 8 15:26:09 2021 +0800
     ),
   ),
 };
-
-void main() {
-  group('Commit.parse()', () {
-    testData.forEach((key, data) {
-      test('parses $key correctly', () {
-        expect(Commit.parse(data.input), equals(data.output));
-      });
-    });
-  });
-
-  group('Commit.parseCommits()', () {
-    late List<Commit> commits;
-
-    setUp(() {
-      commits = Commit.parseCommits(testLog);
-    });
-
-    test('it parses all logs', () {
-      expect(commits.length, equals(6));
-    });
-
-    test('it correctly parses logs', () {
-      expect(
-        commits.first.id,
-        equals('fc9d8117b1074c3c965c5c1ccf845d784c026ac7'),
-      );
-      expect(
-        commits.last.id,
-        equals('18bf98f5cddfecc69b26285b6edca063f1a8b1ec'),
-      );
-      expect(
-        commits[3].body,
-        endsWith('BREAKING CHANGE: uses null-safety'),
-      );
-    });
-  });
-}

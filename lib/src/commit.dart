@@ -67,25 +67,6 @@ DateTime _parseDate(List<String> commitLines) {
   return DateTime.parse('$year-$month-${day}T$time$timeZone');
 }
 
-class _Notes extends Equatable {
-  final String type;
-  final String description;
-  final String body;
-  final String scope;
-  final bool breaking;
-
-  const _Notes({
-    required this.type,
-    required this.description,
-    required this.body,
-    required this.scope,
-    required this.breaking,
-  });
-
-  @override
-  List<Object?> get props => [type, description, body, scope, breaking];
-}
-
 List<String> _findDescriptionLines(List<String> original) {
   final List<String> lines = [];
   bool blankLineStart = false;
@@ -100,93 +81,151 @@ List<String> _findDescriptionLines(List<String> original) {
   return lines;
 }
 
-final _messageRegexp = RegExp(r'\s+(\w+\!?)(\((.+)\))?:\s?(.+)');
-_Notes _parseNotes(List<String> lines) {
-  final firstLine = lines.removeAt(0);
-  final match = _messageRegexp.firstMatch(firstLine);
-  String type = '';
-  String description = firstLine.trim();
-  String scope = '';
-  bool breaking = false;
-  if (match is RegExpMatch) {
-    type = match.group(1)!;
-    if (type.endsWith('!')) {
-      breaking = true;
-      type = type.replaceFirst(RegExp(r'\!$'), '');
-    }
-    description = match.group(4)!;
-    scope = match.group(3) ?? '';
+List<String> _retrieveLines(String str) {
+  return str.trim().split('\n');
+}
+
+final _messageRegexp = RegExp(r'^(\w+)(\!?)(\((.+)\))?:\s?(.+)');
+
+class CommitMessage with EquatableMixin {
+  final String type;
+  final String description;
+  // final String header;
+  final String scope;
+  final String body;
+  final bool breaking;
+  final bool isConventional;
+
+  const CommitMessage({
+    // required this.header,
+    required this.type,
+    required this.description,
+    this.breaking = false,
+    this.scope = '',
+    this.body = '',
+    this.isConventional = true,
+  });
+
+  static CommitMessage parse(String str) {
+    final lines = str.split('\n');
+    return parseCommitLines(lines);
   }
-  final body = lines
-      .map((String line) {
-        if (line.contains('BREAKING')) {
-          breaking = true;
-        }
-        return line.replaceFirst(RegExp('^    '), '');
-      })
-      .toList()
-      .join('\n')
-      .trim();
-  return _Notes(
+
+  // ignore: prefer_constructors_over_static_methods
+  static CommitMessage parseCommitLines(List<String> lines) {
+    final firstLine = lines.removeAt(0);
+    final match = _messageRegexp.firstMatch(firstLine.trim());
+    String type = '';
+    String description = firstLine.trim();
+    String scope = '';
+    bool breaking = false;
+    if (match is RegExpMatch) {
+      type = match.group(1)!;
+      if (match.group(2) == '!') {
+        breaking = true;
+      }
+      description = match.group(5)!;
+      scope = match.group(4) ?? '';
+    }
+    final body = lines
+        .map((String line) {
+          if (line.contains('BREAKING')) {
+            breaking = true;
+          }
+          return line.replaceFirst(RegExp('^    '), '');
+        })
+        .toList()
+        .join('\n')
+        .trim();
+    return CommitMessage(
+      type: type,
+      description: description,
+      body: body,
+      scope: scope,
+      breaking: breaking,
+    );
+  }
+
+  @override
+  List<Object?> get props =>
+      [type, description, scope, body, breaking, isConventional];
+}
+
+CommitMessage _asCommit({
+  String type = '',
+  String description = '',
+  bool? breaking,
+  String? scope,
+  String? body,
+  bool? isConventional,
+}) {
+  return CommitMessage(
     type: type,
     description: description,
-    body: body,
-    scope: scope,
-    breaking: breaking,
+    breaking: breaking ?? false,
+    scope: scope ?? '',
+    body: body ?? '',
+    isConventional: isConventional ?? true,
   );
 }
 
-class Commit extends Equatable {
+class Commit with EquatableMixin {
   final String id;
   final CommitAuthor author;
   final DateTime date;
-  final String type;
-  final bool breaking;
-  final String description;
-  final String scope;
-  final String body;
+  final CommitMessage message;
 
   @override
   List<Object?> get props => [
         id,
         author,
         date,
-        type,
-        breaking,
-        description,
-        scope,
-        body,
+        message,
       ];
 
-  const Commit({
+  bool get breaking => message.breaking;
+  bool get isConventional => message.isConventional;
+  String get type => message.type;
+  String get description => message.description;
+  String get scope => message.scope;
+  String get body => message.body;
+
+  Commit({
     required this.id,
     required this.author,
     required this.date,
-    required this.type,
-    required this.description,
-    this.breaking = false,
-    this.scope = '',
-    this.body = '',
-  });
+    CommitMessage? message,
+    String type = '',
+    String description = '',
+    bool? breaking,
+    String? scope,
+    String? body,
+    bool? isConventional,
+  }) : message = message ??
+            _asCommit(
+              type: type,
+              description: description,
+              breaking: breaking,
+              scope: scope,
+              body: body,
+              isConventional: isConventional,
+            );
 
   // ignore: prefer_constructors_over_static_methods
   static Commit parse(String str) {
-    final lines = str.trim().split('\n');
+    final lines = _retrieveLines(str);
     if (lines.isEmpty) {
       throw Exception('The commit log "$str" appears to be empty');
     }
 
-    final notes = _parseNotes(_findDescriptionLines(lines));
+    final message =
+        CommitMessage.parseCommitLines(_findDescriptionLines(lines));
 
     return Commit(
       id: _parseId(lines),
       author: _parseAuthor(lines),
       date: _parseDate(lines),
-      type: notes.type,
-      description: notes.description,
-      body: notes.body,
-      breaking: notes.breaking,
-      scope: notes.scope,
+      message: message,
     );
   }
 
