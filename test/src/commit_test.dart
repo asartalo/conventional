@@ -35,7 +35,7 @@ void main() {
         equals('18bf98f5cddfecc69b26285b6edca063f1a8b1ec'),
       );
       expect(
-        commits[3].body,
+        commits[3].footer.first.toString(),
         endsWith('BREAKING CHANGE: uses null-safety'),
       );
     });
@@ -124,7 +124,7 @@ Date:   Sat Dec 19 13:28:47 2020 +0800
 
     ci(workflow): Merge pull request #3 from asartalo/semantic-release
 
-    ci: fixing semantic-release config
+    fixing semantic-release config
 ''',
     Commit(
       id: '18bf98f5cddfecc69b26285b6edca063f1a8b1ec',
@@ -136,7 +136,7 @@ Date:   Sat Dec 19 13:28:47 2020 +0800
       type: 'ci',
       scope: 'workflow',
       description: 'Merge pull request #3 from asartalo/semantic-release',
-      body: 'ci: fixing semantic-release config',
+      body: 'fixing semantic-release config',
     ),
   ),
   'with breaking change in body': _TestData(
@@ -161,10 +161,8 @@ Date:   Fri Feb 5 11:56:26 2021 +0800
       type: 'feat',
       breaking: true,
       description: 'null-safety and piechart cache',
-      body: '''
-- custom piechart code
-
-BREAKING CHANGE: uses null-safety''',
+      body: '- custom piechart code',
+      footer: [CommitMessageFooter.parse('BREAKING CHANGE: uses null-safety')],
     ),
   ),
   'with breaking indication in description': _TestData(
@@ -201,7 +199,6 @@ Date:   Mon Feb 8 15:26:09 2021 +0800
         email: 'jane.doe@example.com',
       ),
       date: DateTime.parse('2021-02-08T15:26:09 +0800'),
-      type: '',
       description: 'fix fix release workflow',
     ),
   ),

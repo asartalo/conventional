@@ -4,7 +4,7 @@ import 'package:conventional/conventional.dart';
 import 'package:path/path.dart' as paths;
 import 'package:test/test.dart';
 
-import 'fixtures.dart';
+import '../fixtures.dart';
 
 final _startDir = Directory.current.path;
 final _tmpDir = paths.join(_startDir, 'tmp');

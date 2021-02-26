@@ -82,91 +82,7 @@ List<String> _findDescriptionLines(List<String> original) {
 }
 
 List<String> _retrieveLines(String str) {
-  return str.trim().split('\n');
-}
-
-final _messageRegexp = RegExp(r'^(\w+)(\!?)(\((.+)\))?:\s?(.+)');
-
-class CommitMessage with EquatableMixin {
-  final String type;
-  final String description;
-  // final String header;
-  final String scope;
-  final String body;
-  final bool breaking;
-  final bool isConventional;
-
-  const CommitMessage({
-    // required this.header,
-    required this.type,
-    required this.description,
-    this.breaking = false,
-    this.scope = '',
-    this.body = '',
-    this.isConventional = true,
-  });
-
-  static CommitMessage parse(String str) {
-    final lines = str.split('\n');
-    return parseCommitLines(lines);
-  }
-
-  // ignore: prefer_constructors_over_static_methods
-  static CommitMessage parseCommitLines(List<String> lines) {
-    final firstLine = lines.removeAt(0);
-    final match = _messageRegexp.firstMatch(firstLine.trim());
-    String type = '';
-    String description = firstLine.trim();
-    String scope = '';
-    bool breaking = false;
-    if (match is RegExpMatch) {
-      type = match.group(1)!;
-      if (match.group(2) == '!') {
-        breaking = true;
-      }
-      description = match.group(5)!;
-      scope = match.group(4) ?? '';
-    }
-    final body = lines
-        .map((String line) {
-          if (line.contains('BREAKING')) {
-            breaking = true;
-          }
-          return line.replaceFirst(RegExp('^    '), '');
-        })
-        .toList()
-        .join('\n')
-        .trim();
-    return CommitMessage(
-      type: type,
-      description: description,
-      body: body,
-      scope: scope,
-      breaking: breaking,
-    );
-  }
-
-  @override
-  List<Object?> get props =>
-      [type, description, scope, body, breaking, isConventional];
-}
-
-CommitMessage _asCommit({
-  String type = '',
-  String description = '',
-  bool? breaking,
-  String? scope,
-  String? body,
-  bool? isConventional,
-}) {
-  return CommitMessage(
-    type: type,
-    description: description,
-    breaking: breaking ?? false,
-    scope: scope ?? '',
-    body: body ?? '',
-    isConventional: isConventional ?? true,
-  );
+  return str.split('\n');
 }
 
 class Commit with EquatableMixin {
@@ -189,6 +105,7 @@ class Commit with EquatableMixin {
   String get description => message.description;
   String get scope => message.scope;
   String get body => message.body;
+  List<CommitMessageFooter> get footer => message.footer;
 
   Commit({
     required this.id,
@@ -197,18 +114,20 @@ class Commit with EquatableMixin {
     CommitMessage? message,
     String type = '',
     String description = '',
+    String header = '',
     bool? breaking,
     String? scope,
     String? body,
-    bool? isConventional,
+    List<CommitMessageFooter>? footer,
   }) : message = message ??
-            _asCommit(
+            CommitMessage(
               type: type,
               description: description,
               breaking: breaking,
               scope: scope,
+              header: header,
               body: body,
-              isConventional: isConventional,
+              footer: footer,
             );
 
   // ignore: prefer_constructors_over_static_methods
@@ -252,11 +171,7 @@ class Commit with EquatableMixin {
 id: $id,
 author: $author,
 date: $date,
-type: $type,
-breaking: $breaking,
-scope: ${scope.isNotEmpty ? scope : 'none'},
-description: $description,
-body: $body,
+$message
 ''';
   }
 }

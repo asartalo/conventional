@@ -8,6 +8,8 @@ import 'package:pub_semver/pub_semver.dart';
 part 'src/changelog.dart';
 part 'src/commit.dart';
 part 'src/commit_author.dart';
+part 'src/commit_message.dart';
+part 'src/lint_commit.dart';
 part 'src/next_version.dart';
 part 'src/version.dart';
 
