@@ -2,8 +2,6 @@ part of '../conventional.dart';
 
 final _messageRegexp = RegExp(r'^(\w+)(\!?)(\((.+)\))?:(.*)');
 
-enum CommitMessageParsingErrors { eff }
-
 class _PartialHeaderResult {
   bool isHeader = false;
   bool breaking = false;
@@ -48,19 +46,40 @@ const _breakingKeys = <String>{
   'BREAKING CHANGE',
 };
 
+/// A footer item of a [CommitMessage]
+///
+/// Typical footer items:
+///
+/// ```
+/// Reviewed-by: James <james@somewhere.com>
+/// BREAKING CHANGE: changes behavior of sleep().
+/// ```
 class CommitMessageFooter with EquatableMixin {
+  /// Footer key
   final String key;
+
+  /// Footer value
   final String value;
 
+  /// Whether the footer follows Conventional Commit spec
   bool get isValid => _keyRegExp.hasMatch(key) && value.isNotEmpty;
+
+  /// Whether it represents a BREAKING CHANGE item.
+  ///
+  /// Will be true if [key] is either 'BREAKING', 'BREAKING-CHANGE', or
+  /// 'BREAKING CHANGE':
   bool get breaking => _breakingKeys.contains(key);
 
+  /// Creates a CommitMessageFooter
   CommitMessageFooter({this.key = '', required this.value});
 
+  /// A helper static function for checking if a line of text looks like a
+  /// footer.
   static bool looksLikeFooter(String str) {
     return _footerRegexp.firstMatch(str) is RegExpMatch;
   }
 
+  /// Parses a possible line of string
   // ignore: prefer_constructors_over_static_methods
   static CommitMessageFooter parse(String str) {
     final match = _footerRegexp.firstMatch(str);
@@ -74,7 +93,7 @@ class CommitMessageFooter with EquatableMixin {
   }
 
   @override
-  List<Object> get props => [key, value];
+  List<Object> get props => [key.toLowerCase(), value];
 
   @override
   String toString() {
@@ -82,19 +101,57 @@ class CommitMessageFooter with EquatableMixin {
   }
 }
 
+/// Represents a git commit message
+///
+/// A rough format of a typical Conventional Commit is:
+///
+/// [type]([scope]): [description]
+///
+/// [body]
+///
+/// [footer]
+///
+/// See [conventionalcommits.org](https://www.conventionalcommits.org/) for more
+/// information on how to format commits. following the spec.
 class CommitMessage with EquatableMixin {
   final String _header;
+
+  /// A commit type following Conventional Commit
   final String type;
+
+  /// The commit description
   final String description;
+
+  /// The scope of the commit
   final String scope;
+
+  /// The commit body
   final String body;
+
+  /// Whether this commit is a breaking change
   final bool breaking;
+
+  /// Footer of the commits
   final List<CommitMessageFooter> footer;
+
+  // Use this to store parsing errors
   final List<String> _parsingErrors;
 
+  /// See all the parsing errors generated from [Commit.parse]
+  ///
+  /// TODO: Currently is not used much. Add more errors here.
+  List<String> get parsingErrors => _parsingErrors;
+
+  /// Whether this follows the Conventional Commit format
+  ///
+  /// Typically more useful when [Commit] is created using [Commit.parse].
   bool get isConventional =>
       type.isNotEmpty && description.isNotEmpty & _parsingErrors.isEmpty;
 
+  /// The commit message header
+  ///
+  /// This is the first line of a commit. For commits following the Conventional
+  /// Commit format, it will be formatted as "[type]: [description]".
   String get header {
     if (_header.isNotEmpty) {
       return _header;
@@ -107,6 +164,7 @@ class CommitMessage with EquatableMixin {
     return description;
   }
 
+  /// Creates a CommitMessage
   CommitMessage({
     required this.type,
     required this.description,
@@ -119,15 +177,24 @@ class CommitMessage with EquatableMixin {
   })  : breaking = breaking ?? false,
         scope = scope ?? '',
         body = body ?? '',
-        _header = header ?? '',
         footer = footer ?? const [],
+        _header = header ?? '',
         _parsingErrors = parsingErrors ?? const [];
 
-  static CommitMessage parse(String str) {
-    final lines = str.split('\n');
+  /// Parses a commit message string
+  ///
+  /// If the [commitMessageStr] does not follow the Conventional Commit format,
+  /// it will still be parsed but [isConventional] will be false and the only
+  /// fields that are populated are [description] and [body] if available along
+  /// with [parsingErrors] populated.
+  static CommitMessage parse(String commitMessageStr) {
+    final lines = commitMessageStr.split('\n');
     return parseCommitLines(lines);
   }
 
+  /// Parses a [List<String>] from a commit message string
+  ///
+  /// See [CommitMessage.parse]
   // ignore: prefer_constructors_over_static_methods
   static CommitMessage parseCommitLines(List<String> lines) {
     final List<String> bodyLines = [];

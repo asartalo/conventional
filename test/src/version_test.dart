@@ -2,6 +2,8 @@ import 'package:conventional/conventional.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
+// These tests are a holdover for when I was still using a custom Version
+// parser which is not great.
 void main() {
   group('Version', () {
     group('parse and toString()', () {

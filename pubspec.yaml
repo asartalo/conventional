@@ -1,6 +1,6 @@
 name: conventional
 description: A light-weight conventional commit parser and tools
-version: 0.0.2-pre
+version: 0.1.0-pre
 homepage: https://github.com/asartalo/conventional
 
 environment:

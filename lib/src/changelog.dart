@@ -1,12 +1,22 @@
 part of '../conventional.dart';
 
+/// Writes to a changelog file based on commits.
+///
+/// It first checks if [commits] have "releaseable" commits using
+/// [hasReleasableCommits]. If it doesn't, it will return `null`. If it does,
+/// it will write to the [changelogFilePath] with given [version] string for the
+/// changes within within [commits] and [now] for the date. This will then
+/// return with a [ChangeSummary].
+///
+/// If [now] isn't provided, it will default to `DateTime.now()`.
 Future<ChangeSummary?> writeChangelog({
   required List<Commit> commits,
   required String changelogFilePath,
   required String version,
-  required DateTime now,
+  DateTime? now,
 }) async {
   if (hasReleasableCommits(commits)) {
+    now ??= DateTime.now();
     final file = File(changelogFilePath);
     String oldContents = '';
     if (await file.exists()) {
@@ -53,18 +63,30 @@ String? _changeSection(String header, List<Commit> commits) {
   return '## $header\n\n$contents';
 }
 
+/// A grouping of commit changes.
+///
+/// Groups are for [bugFixes], [features], and [breakingChanges].
 class CommitSections extends Equatable {
+  /// Bug fix commits
   final List<Commit> bugFixes = [];
+
+  /// Commits that add new features
   final List<Commit> features = [];
+
+  /// Commits that have breaking changes
   final List<Commit> breakingChanges = [];
 
+  /// Whether there are no items in all commit groups.
   bool get isEmpty =>
       (bugFixes.length + features.length + breakingChanges.length) > 0;
+
+  /// Whether there are items in commit groups
   bool get isNotEmpty => !isEmpty;
 
   @override
   List<Object?> get props => [bugFixes, features, breakingChanges];
 
+  /// Create a [CommitSections] based on [commits].
   CommitSections fromCommits(List<Commit> commits) {
     final section = CommitSections();
     for (final commit in commits) {
@@ -73,25 +95,45 @@ class CommitSections extends Equatable {
     return section;
   }
 
-  void add(Commit commit) {
+  /// Adds a commit to the [CommitSections].
+  ///
+  /// Returns `true` if the [commit] was added to any of the group or `false`
+  /// when it wasn't.
+  bool add(Commit commit) {
+    var added = true;
     if (commit.breaking) {
       breakingChanges.add(commit);
     } else if (commit.type == 'fix') {
       bugFixes.add(commit);
     } else if (commit.type == 'feat') {
       features.add(commit);
+    } else {
+      added = false;
     }
+    return added;
   }
 }
 
+/// A summary of changes
+///
+/// Mainly used for writing changelogs.
 class ChangeSummary extends Equatable {
+  /// The version for the change
   final Version version;
+
+  /// The releasable commits
   final CommitSections sections;
+
+  /// The date for releasing the change
   final DateTime date;
 
+  /// Whether there are any commits included in this summary
   bool get isNotEmpty => sections.isNotEmpty;
+
+  /// Wheter there are no commits included in this summary
   bool get isEmpty => sections.isEmpty;
 
+  /// Create a ChangeSummary
   const ChangeSummary({
     required this.version,
     required this.sections,
@@ -101,6 +143,7 @@ class ChangeSummary extends Equatable {
   @override
   List<Object?> get props => [version, sections, date];
 
+  /// Returns a Markdown string of changes
   String toMarkdown() {
     final List<String> parts = [
       _versionHeadline(version.toString(), date),

@@ -1,6 +1,18 @@
 part of '../conventional.dart';
 
-Version nextVersion(Version before, List<Commit> commits) {
+/// Bump up a [currentVersion] based on a list of [commits]
+///
+/// If [commits] has any breaking changes, it will be bumped to the next
+/// major version. If not and the [commits] have any new features, it will be
+/// bumped to the next minor version. If not and the [commits] have patch-level
+/// changes, it will be bumped to the next patch version.
+///
+/// NOTE: I would have loved to use [Version.nextMajor] methods and the like.
+/// However, they discarded the build numbers and release parts so I had to
+/// create my own.
+///
+/// TODO: Perhaps asks the kind people at pub_semver to have this feature.
+Version nextVersion(Version currentVersion, List<Commit> commits) {
   bool isMajor = false;
   bool isMinor = false;
   bool isPatch = false;
@@ -26,14 +38,16 @@ Version nextVersion(Version before, List<Commit> commits) {
   } else if (isPatch) {
     patch = 1;
   } else {
-    return before;
+    return currentVersion;
   }
 
   return Version(
-    before.major + major,
-    before.minor + minor,
-    before.patch + patch,
-    build: before.build.isEmpty ? null : before.build.join('.'),
-    pre: before.preRelease.isEmpty ? null : before.preRelease.join('.'),
+    currentVersion.major + major,
+    currentVersion.minor + minor,
+    currentVersion.patch + patch,
+    build: currentVersion.build.isEmpty ? null : currentVersion.build.join('.'),
+    pre: currentVersion.preRelease.isEmpty
+        ? null
+        : currentVersion.preRelease.join('.'),
   );
 }
