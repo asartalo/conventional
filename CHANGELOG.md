@@ -1,3 +1,6 @@
+## 0.1.0
+- Updated equatable dependency
+
 ## 0.1.0-pre
 
 - Added `lintCommit()` for linting commit messages based on Conventional Commit logs
