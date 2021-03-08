@@ -1,4 +1,9 @@
-part of '../conventional.dart';
+import 'dart:io';
+import 'package:equatable/equatable.dart';
+import 'package:pub_semver/pub_semver.dart';
+import 'commit.dart';
+import 'has_releasable_commits.dart';
+import 'zero_pad.dart';
 
 /// Writes to a changelog file based on commits.
 ///
@@ -66,7 +71,7 @@ String? _changeSection(String header, List<Commit> commits) {
 /// A grouping of commit changes.
 ///
 /// Groups are for [bugFixes], [features], and [breakingChanges].
-class CommitSections extends Equatable {
+class CommitSections with EquatableMixin {
   /// Bug fix commits
   final List<Commit> bugFixes = [];
 
@@ -167,6 +172,6 @@ ChangeSummary _writeContents(
 }
 
 String _versionHeadline(String version, DateTime now) {
-  final date = '${now.year}-${_zeroPad(now.month)}-${_zeroPad(now.day)}';
+  final date = '${now.year}-${zeroPad(now.month)}-${zeroPad(now.day)}';
   return '# $version ($date)';
 }

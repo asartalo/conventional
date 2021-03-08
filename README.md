@@ -2,14 +2,14 @@
 
 A light-weight library for working with commits that follow the [Conventional Commits](https://www.conventionalcommits.org) specification.
 
-**NOTE:** At the moment, this library is only used on my projects and the API is a moving target. The Conventional Commit parser is not comprehensive. If you need a more mature solution, I recommend [conventional_commits](https://pub.dev/packages/conventional_commit).
+**NOTE:** At the moment, this library is only used on my projects and the API is a moving target. The Conventional Commit parser is not comprehensive. If you need a more mature solution, try [conventional_commits](https://pub.dev/packages/conventional_commit).
 
 ## Features
 
-- [Commit.parseCommits()][Commit.parseCommits] for parsing commits from a `git --no-pager log --no-decorate` command.
+- [Commit.parseCommits()][Commit.parseCommits] for parsing commits from a `git --no-pager log --no-decorate` command output.
 - [hasReleasableCommits()][hasReleasableCommits] for checking if a list `Commit` items has releasable commits following the convention.
 - [writeChangelog()][writeChangelog] for automated authoring of CHANGELOGs based on commits that follow the conventional commits spec.
-- [lintCommit()][lintCommit] for checking whether commit messages follow the conventional commit convention. Useful when used alongside [git_hooks](https://pub.dev/packages/git_hooks).
+- [lintCommit()][lintCommit] for checking whether commit messages follow the conventional commit spec. Useful when used alongside [git_hooks](https://pub.dev/packages/git_hooks).
 - [nextVersion()][nextVersion] for bumping to a next version based on releasable commits.
 
 ## Usage

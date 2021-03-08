@@ -1,4 +1,6 @@
-part of '../conventional.dart';
+import 'package:equatable/equatable.dart';
+
+import 'commit_message.dart';
 
 /// A configuration for linting rules
 ///

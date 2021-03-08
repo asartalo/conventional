@@ -1,4 +1,4 @@
-part of '../conventional.dart';
+import 'package:equatable/equatable.dart';
 
 /// Represents the author of the commit
 class CommitAuthor extends Equatable {

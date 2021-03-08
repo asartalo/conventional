@@ -1,4 +1,5 @@
-part of '../conventional.dart';
+import 'package:pub_semver/pub_semver.dart';
+import 'commit.dart';
 
 /// Bump up a [currentVersion] based on a list of [commits]
 ///

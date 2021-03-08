@@ -1,4 +1,4 @@
-part of '../conventional.dart';
+import 'package:equatable/equatable.dart';
 
 final _messageRegexp = RegExp(r'^(\w+)(\!?)(\((.+)\))?:(.*)');
 

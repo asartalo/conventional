@@ -1,4 +1,7 @@
-part of '../conventional.dart';
+import 'package:equatable/equatable.dart';
+
+import 'commit_author.dart';
+import 'commit_message.dart';
 
 final _idLineRegexp = RegExp(r'commit (\w+)$');
 String _parseId(List<String> commitLines) {
