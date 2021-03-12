@@ -25,6 +25,9 @@ jobs:
       with:
         release-channel: stable
 
+    # Checkout
+    - uses: actions/checkout@v2
+
     # Get dependencies.
     - run: pub get
 
