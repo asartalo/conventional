@@ -1,6 +1,6 @@
 # Conventional
 
-[![Continuous integration](https://github.com/asartalo/conventional/actions/workflows/ci.yml/badge.svg)](https://github.com/asartalo/conventional/actions/workflows/ci.yml) [![Coverage Status](https://coveralls.io/repos/github/asartalo/conventional/badge.svg?branch=main)](https://coveralls.io/github/asartalo/conventional?branch=main)
+[![build](https://github.com/asartalo/conventional/actions/workflows/ci.yml/badge.svg)](https://github.com/asartalo/conventional/actions/workflows/ci.yml) [![Coverage Status](https://coveralls.io/repos/github/asartalo/conventional/badge.svg?branch=main)](https://coveralls.io/github/asartalo/conventional?branch=main)
 
 A light-weight library for working with commits that follow the [Conventional Commits](https://www.conventionalcommits.org) specification.
 

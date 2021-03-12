@@ -41,7 +41,7 @@ jobs:
       run: dart test --coverage="coverage"
 
     - name: Prepare coverage
-      run: format_coverage --lcov --in=coverage --out=lcov.info --packages=.packages --report-on=lib
+      run: pub run coverage:format_coverage --lcov --in=coverage --out=lcov.info --packages=.packages --report-on=lib
 
     - name: Upload coverage
       uses: coverallsapp/github-action@v1.1.2
