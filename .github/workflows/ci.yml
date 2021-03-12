@@ -28,14 +28,23 @@ jobs:
     # Checkout
     - uses: actions/checkout@v2
 
-    # Get dependencies.
-    - run: pub get
+    - name: Get dependencies
+      run: pub get
 
-    # Check for any formatting issues in the code.
-    - run: dart format --set-exit-if-changed .
+    - name: Check dart formatting
+      run: dart format --set-exit-if-changed .
 
-    # Statically analyze the Dart code for any errors.
-    - run: dart analyze .
+    - name: Statically analyze the Dart code for any errors.
+      run: dart analyze .
 
-    # Run widget tests for our flutter project.
-    - run: dart test
+    - name: Run Tests with coverage
+      run: dart test --coverage="coverage"
+
+    - name: Prepare coverage
+      run: format_coverage --lcov --in=coverage --out=lcov.info --packages=.packages --report-on=lib
+
+    - name: Upload coverage
+      uses: coverallsapp/github-action@v1.1.2
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        path-to-lcov: lcov.info
