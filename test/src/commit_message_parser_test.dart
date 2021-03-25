@@ -1,4 +1,5 @@
 import 'package:conventional/conventional.dart';
+import 'package:conventional/src/commit_message_parser.dart';
 import 'package:test/test.dart';
 
 class _TestData {
@@ -34,15 +35,13 @@ _TestData _t(
 }
 
 void main() {
-  group('CommitMessage.parse()', () {
+  group(CommitMessageParser, () {
     final testData = [
       _t(
         'normal commit message',
         input: 'this is just a description',
         expected: CommitMessage(
-          type: '',
           description: 'this is just a description',
-          header: 'this is just a description',
         ),
         expectedConventional: false,
         expectedHeader: 'this is just a description',
@@ -56,6 +55,17 @@ void main() {
         ),
         expectedConventional: true,
         expectedHeader: 'feat: it can jump',
+      ),
+      _t(
+        'breaking header',
+        input: 'feat!: it can eat',
+        expected: CommitMessage(
+          type: 'feat',
+          description: 'it can eat',
+          breaking: true,
+        ),
+        expectedConventional: true,
+        expectedHeader: 'feat!: it can eat',
       ),
       _t(
         'conventional fix with scope',
@@ -100,6 +110,19 @@ void main() {
         ),
         expectedConventional: false,
       ),
+      _t(
+        'commit with footer',
+        input:
+            'fix: foo bar\n\nAuthored-by: John Doe\nBREAKING-CHANGE: break break',
+        expected: CommitMessage(
+          type: 'fix',
+          description: 'foo bar',
+          footer: [
+            CommitMessageFooter(value: 'John Doe', key: 'Authored-by'),
+            CommitMessageFooter(value: 'break break', key: 'BREAKING-CHANGE'),
+          ],
+        ),
+      ),
     ];
 
     for (final data in testData) {
@@ -120,7 +143,7 @@ void main() {
         }
         if (data.expectedHeader is String) {
           test('.header is correct', () {
-            expect(message.header, data.expectedHeader);
+            expect(message.header.toString(), data.expectedHeader);
           });
         }
       });

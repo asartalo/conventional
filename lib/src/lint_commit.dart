@@ -153,7 +153,8 @@ final List<LintRule> defaultRules = [
   LintRule(
     'header-max-length',
     validator: (context) =>
-        context.config.maxHeaderLength > context.message.header.length,
+        context.config.maxHeaderLength >
+        context.message.header.toString().length,
     invalidMessage: 'Header is too long.',
   ),
   LintRule(
@@ -166,7 +167,7 @@ final List<LintRule> defaultRules = [
     validator: (context) {
       final message = context.message;
       if (!message.isConventional) {
-        final header = message.header;
+        final header = message.header.toString();
         if (header.contains(':')) {
           final typePart = header.split(':').first;
           if ((typePart.contains('(') || typePart.contains(')')) &&

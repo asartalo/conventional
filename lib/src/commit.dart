@@ -70,16 +70,25 @@ DateTime _parseDate(List<String> commitLines) {
   return DateTime.parse('$year-$month-${day}T$time$timeZone');
 }
 
+final _indentRegexp = RegExp(r'^(\s*)(\S.*)\s*$');
 List<String> _findDescriptionLines(List<String> original) {
   final List<String> lines = [];
   bool blankLineStart = false;
+  int i = 0;
+  String indentation = '';
   for (final line in original) {
     if (blankLineStart) {
-      lines.add(line);
+      // Get indentation
+      final match = _indentRegexp.firstMatch(line);
+      if (match is RegExpMatch) {
+        indentation = match.group(1) ?? '';
+      }
+      lines.add(line.replaceFirst(indentation, ''));
     }
     if (line.isEmpty) {
       blankLineStart = true;
     }
+    i++;
   }
   return lines;
 }
@@ -131,7 +140,7 @@ class Commit with EquatableMixin {
   String get body => message.body;
 
   /// See [CommitMessage.header]
-  String get header => message.header;
+  CommitHeader get header => message.header;
 
   /// See [CommitMessage.footer]
   List<CommitMessageFooter> get footer => message.footer;
@@ -146,9 +155,9 @@ class Commit with EquatableMixin {
     required this.author,
     required this.date,
     CommitMessage? message,
-    String type = '',
-    String description = '',
-    String header = '',
+    String? type,
+    String? description,
+    CommitHeader? header,
     bool? breaking,
     String? scope,
     String? body,

@@ -1,39 +1,6 @@
+import 'package:conventional/src/commit_message_parser.dart';
 import 'package:equatable/equatable.dart';
-
-final _messageRegexp = RegExp(r'^(\w+)(\!?)(\((.+)\))?:(.*)');
-
-class _PartialHeaderResult {
-  bool isHeader = false;
-  bool breaking = false;
-  String description = '';
-  String indentation = '';
-  String type = '';
-  String scope = '';
-  String header = '';
-}
-
-final _indentRegexp = RegExp(r'^(\s*)(\S.*)\s*$');
-_PartialHeaderResult _parseHeader(String headerLine) {
-  final result = _PartialHeaderResult();
-  final headerMatch = _indentRegexp.firstMatch(headerLine);
-  if (headerMatch is RegExpMatch) {
-    result.header = headerMatch.group(2)!;
-    result.indentation = headerMatch.group(1)!;
-
-    final match = _messageRegexp.firstMatch(result.header);
-    if (match is RegExpMatch) {
-      result.type = match.group(1)!;
-      if (match.group(2) == '!') {
-        result.breaking = true;
-      }
-      result.description = match.group(5)!.trim();
-      result.scope = match.group(4) ?? '';
-    } else {
-      result.description = result.header;
-    }
-  }
-  return result;
-}
+import 'package:petitparser/petitparser.dart';
 
 final _keyRegExp = RegExp(
     r'^(BREAKING|BREAKING CHANGE|BREAKING-CHANGE|[A-Za-z][A-Za-z\-]*[A-Za-z])$');
@@ -45,6 +12,55 @@ const _breakingKeys = <String>{
   'BREAKING-CHANGE',
   'BREAKING CHANGE',
 };
+
+/// Represents a commit message header
+abstract class CommitHeader {
+  external String get type;
+  external String get description;
+  external String get scope;
+  external bool get breaking;
+  external String toString();
+}
+
+/// A commit header that follows the Conventional Commit spec
+class ConventionalHeader with EquatableMixin implements CommitHeader {
+  final String type;
+  final String scope;
+  final bool breaking;
+  final String description;
+
+  ConventionalHeader({
+    required this.type,
+    required this.scope,
+    required this.breaking,
+    required this.description,
+  });
+
+  @override
+  String toString() {
+    final scopeText = scope.isEmpty ? '' : '($scope)';
+    return '$type$scopeText${breaking ? '!' : ''}: $description';
+  }
+
+  @override
+  List<Object> get props => [type, scope, breaking, description];
+}
+
+/// A commit header that doesn't follow the Conventional Commit spec
+class RegularHeader with EquatableMixin implements CommitHeader {
+  String get type => '';
+  String get scope => '';
+  bool get breaking => false;
+  final String description;
+  RegularHeader({required this.description});
+
+  @override
+  String toString() => description;
+
+  @override
+  // TODO: implement props
+  List<Object> get props => [description];
+}
 
 /// A footer item of a [CommitMessage]
 ///
@@ -93,11 +109,34 @@ class CommitMessageFooter with EquatableMixin {
   }
 
   @override
-  List<Object> get props => [key.toLowerCase(), value];
+  List<Object> get props => [key.toUpperCase(), value];
 
   @override
   String toString() {
     return key.isEmpty ? value : '$key: $value';
+  }
+}
+
+CommitHeader _headerFromProps({
+  bool? breaking,
+  String? scope,
+  String? type,
+  String? description,
+}) {
+  if (description is! String) {
+    throw ArgumentError(
+      'If header is not present, please provide a description',
+    );
+  }
+  if (type is String) {
+    return ConventionalHeader(
+      type: type,
+      scope: scope ?? '',
+      breaking: breaking ?? false,
+      description: description,
+    );
+  } else {
+    return RegularHeader(description: description);
   }
 }
 
@@ -114,22 +153,27 @@ class CommitMessageFooter with EquatableMixin {
 /// See [conventionalcommits.org](https://www.conventionalcommits.org/) for more
 /// information on how to format commits. following the spec.
 class CommitMessage with EquatableMixin {
-  final String _header;
+  /// The commit message header
+  ///
+  /// This is the first line of a commit. For commits following the Conventional
+  /// Commit format, it will be formatted as "[type]: [description]".
+  final CommitHeader header;
 
   /// A commit type following Conventional Commit
-  final String type;
+  String get type => header.type;
 
   /// The commit description
-  final String description;
+  String get description => header.description;
 
   /// The scope of the commit
-  final String scope;
+  String get scope => header.scope;
 
   /// The commit body
   final String body;
 
   /// Whether this commit is a breaking change
-  final bool breaking;
+  bool get breaking =>
+      header.breaking || footer.any((footerLine) => footerLine.breaking);
 
   /// Footer of the commits
   final List<CommitMessageFooter> footer;
@@ -148,37 +192,26 @@ class CommitMessage with EquatableMixin {
   bool get isConventional =>
       type.isNotEmpty && description.isNotEmpty & _parsingErrors.isEmpty;
 
-  /// The commit message header
-  ///
-  /// This is the first line of a commit. For commits following the Conventional
-  /// Commit format, it will be formatted as "[type]: [description]".
-  String get header {
-    if (_header.isNotEmpty) {
-      return _header;
-    }
-    if (isConventional) {
-      return scope.isEmpty
-          ? '$type: $description'
-          : '$type($scope): $description';
-    }
-    return description;
-  }
-
   /// Creates a CommitMessage
   CommitMessage({
-    required this.type,
-    required this.description,
-    String? header,
+    String? type,
+    CommitHeader? header,
+    String? description,
     bool? breaking,
     String? scope,
     String? body,
     List<CommitMessageFooter>? footer,
     List<String>? parsingErrors,
-  })  : breaking = breaking ?? false,
-        scope = scope ?? '',
+  })  : header = header is CommitHeader
+            ? header
+            : _headerFromProps(
+                breaking: breaking,
+                scope: scope,
+                type: type,
+                description: description,
+              ),
         body = body ?? '',
         footer = footer ?? const [],
-        _header = header ?? '',
         _parsingErrors = parsingErrors ?? const [];
 
   /// Parses a commit message string
@@ -188,8 +221,11 @@ class CommitMessage with EquatableMixin {
   /// fields that are populated are [description] and [body] if available along
   /// with [parsingErrors] populated.
   static CommitMessage parse(String commitMessageStr) {
-    final lines = commitMessageStr.split('\n');
-    return parseCommitLines(lines);
+    final result = CommitMessageParser().parse(commitMessageStr.trim());
+    if (result is Success) {
+      return result.value as CommitMessage;
+    }
+    throw Exception('Unable to parse Commit Message $commitMessageStr');
   }
 
   /// Parses a [List<String>] from a commit message string
@@ -197,86 +233,20 @@ class CommitMessage with EquatableMixin {
   /// See [CommitMessage.parse]
   // ignore: prefer_constructors_over_static_methods
   static CommitMessage parseCommitLines(List<String> lines) {
-    final List<String> bodyLines = [];
-    var breaking = false;
-    var parsedHeader = _PartialHeaderResult();
-
-    var headerLineFound = false;
-    var indentation = '';
-    final List<String> parsingErrors = [];
-    final List<CommitMessageFooter> footerItems = [];
-    for (final line in lines) {
-      if (!headerLineFound) {
-        if (line.trim().isEmpty) {
-          // Skip empty lines before header
-          continue;
-        }
-        headerLineFound = true;
-        parsedHeader = _parseHeader(line);
-        indentation = parsedHeader.indentation;
-        breaking = parsedHeader.breaking;
-      } else {
-        final trimmedLine = line.replaceFirst(indentation, '');
-        bodyLines.add(trimmedLine);
-      }
-    }
-
-    if (bodyLines.isNotEmpty) {
-      // Go through the body lines starting from the bottom
-      var bodyFound = false;
-      var notEmptyLineFound = false;
-      for (var i = bodyLines.length - 1; i > -1; i--) {
-        if (bodyFound) {
-          continue;
-        }
-        final line = bodyLines[i];
-        if (line.trim().isEmpty) {
-          if (!bodyFound) {
-            // remove it and continue
-            bodyLines.removeAt(i);
-          }
-          if (!notEmptyLineFound) {
-            continue;
-          }
-        }
-        notEmptyLineFound = true;
-        if (CommitMessageFooter.looksLikeFooter(line)) {
-          final footerItem = CommitMessageFooter.parse(line);
-          if (footerItem.breaking) {
-            breaking = true;
-          }
-          footerItems.insert(0, footerItem);
-
-          bodyLines.removeAt(i);
-          continue;
-        }
-        bodyFound = true;
-      }
-    }
-
-    if (bodyLines.isNotEmpty) {
-      if (bodyLines.first.trim().isNotEmpty) {
-        parsingErrors.add('no-blank-line-before-body');
-      } else {
-        bodyLines.removeAt(0);
-      }
-    }
-
-    return CommitMessage(
-      type: parsedHeader.type,
-      description: parsedHeader.description,
-      body: bodyLines.join('\n'),
-      scope: parsedHeader.scope,
-      breaking: breaking,
-      header: parsedHeader.header,
-      footer: footerItems,
-      parsingErrors: parsingErrors,
-    );
+    return parse(lines.join('\n'));
   }
 
   @override
-  List<Object?> get props =>
-      [type, description, scope, body, breaking, isConventional, footer];
+  List<Object?> get props => [
+        type,
+        description,
+        scope,
+        body,
+        breaking,
+        isConventional,
+        footer,
+        parsingErrors,
+      ];
 
   @override
   String toString() {
@@ -285,9 +255,10 @@ type: ${_noneIfEmpty(type)}
 description: ${_noneIfEmpty(description)}
 scope: ${_noneIfEmpty(scope)}
 breaking: $breaking
-header: ${_noneIfEmpty(header)}
+header: $header
 body: ${_noneIfEmpty(_bodyDisplay())}
-footer: ${_noneIfEmpty(_footerDisplay())}''';
+footer: ${_noneIfEmpty(_footerDisplay())}
+parsingErrors: $_parsingErrors''';
   }
 
   String _bodyDisplay() {
