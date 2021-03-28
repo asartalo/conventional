@@ -1,4 +1,5 @@
 import 'package:conventional/conventional.dart';
+import 'package:conventional/src/commit_message_footer.dart';
 import 'package:conventional/src/commit_message_parser.dart';
 import 'package:test/test.dart';
 

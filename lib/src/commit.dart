@@ -1,101 +1,14 @@
 import 'package:equatable/equatable.dart';
 
 import 'commit_author.dart';
+import 'commit_logs_parser.dart';
 import 'commit_message.dart';
+import 'commit_message_footer.dart';
+import 'commit_message_header.dart';
+import 'commit_parser.dart';
 
-final _idLineRegexp = RegExp(r'commit (\w+)$');
-String _parseId(List<String> commitLines) {
-  final str = commitLines.first;
-  final id = _idLineRegexp.firstMatch(str)?.group(1);
-  if (id is String) {
-    return id;
-  }
-  return '';
-}
-
-final _authorLineRegexp = RegExp('Author: ([^<]+) <([^>]+)>');
-CommitAuthor _parseAuthor(List<String> commitLines) {
-  final authorLine = commitLines
-      .where((String line) => _authorLineRegexp.hasMatch(line))
-      .first;
-  final match = _authorLineRegexp.firstMatch(authorLine);
-
-  return CommitAuthor(
-    name: match?.group(1) ?? '',
-    email: match?.group(2) ?? '',
-  );
-}
-
-int _parseIntOr(String? str, [int def = 0]) {
-  try {
-    return int.parse(str?.trim() ?? '');
-  } on FormatException {
-    return def;
-  }
-}
-
-String _zeroPad(int n) {
-  return n < 10 ? '0$n' : '$n';
-}
-
-final _dateLineRegexp =
-    RegExp(r'Date:\s+\w+ (\w+) (\d+) (\d+:\d+:\d+) (\d+)(.+)$');
-const _months = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'May',
-  'Jun',
-  'Jul',
-  'Aug',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dec'
-];
-DateTime _parseDate(List<String> commitLines) {
-  final dateLine =
-      commitLines.where((String line) => _dateLineRegexp.hasMatch(line)).first;
-  final match = _dateLineRegexp.firstMatch(dateLine);
-  if (match == null) {
-    return DateTime(1, 1, 0);
-  }
-
-  final year = match.group(4);
-  final month = _zeroPad(_months.indexOf(match.group(1) ?? 'Jan') + 1);
-  final day = _zeroPad(_parseIntOr(match.group(2), 1));
-  final time = match.group(3);
-  final timeZone = match.group(5) ?? '';
-  return DateTime.parse('$year-$month-${day}T$time$timeZone');
-}
-
-final _indentRegexp = RegExp(r'^(\s*)(\S.*)\s*$');
-List<String> _findDescriptionLines(List<String> original) {
-  final List<String> lines = [];
-  bool blankLineStart = false;
-  int i = 0;
-  String indentation = '';
-  for (final line in original) {
-    if (blankLineStart) {
-      // Get indentation
-      final match = _indentRegexp.firstMatch(line);
-      if (match is RegExpMatch) {
-        indentation = match.group(1) ?? '';
-      }
-      lines.add(line.replaceFirst(indentation, ''));
-    }
-    if (line.isEmpty) {
-      blankLineStart = true;
-    }
-    i++;
-  }
-  return lines;
-}
-
-List<String> _retrieveLines(String str) {
-  return str.split('\n');
-}
+final _commitParser = CommitParser();
+final _commitLogsParser = CommitLogsParser();
 
 /// Represents a git commit item.
 class Commit with EquatableMixin {
@@ -140,7 +53,7 @@ class Commit with EquatableMixin {
   String get body => message.body;
 
   /// See [CommitMessage.header]
-  CommitHeader get header => message.header;
+  CommitMessageHeader get header => message.header;
 
   /// See [CommitMessage.footer]
   List<CommitMessageFooter> get footer => message.footer;
@@ -157,7 +70,7 @@ class Commit with EquatableMixin {
     CommitMessage? message,
     String? type,
     String? description,
-    CommitHeader? header,
+    CommitMessageHeader? header,
     bool? breaking,
     String? scope,
     String? body,
@@ -188,20 +101,7 @@ class Commit with EquatableMixin {
   /// Will throw an Exception if [logItem] is empty.
   // ignore: prefer_constructors_over_static_methods
   static Commit parse(String logItem) {
-    final lines = _retrieveLines(logItem);
-    if (lines.isEmpty) {
-      throw Exception('The commit log "$logItem" appears to be empty');
-    }
-
-    final message =
-        CommitMessage.parseCommitLines(_findDescriptionLines(lines));
-
-    return Commit(
-      id: _parseId(lines),
-      author: _parseAuthor(lines),
-      date: _parseDate(lines),
-      message: message,
-    );
+    return _commitParser.parse(logItem);
   }
 
   /// Creates a list of [Commit]s from a `git log` output
@@ -211,12 +111,7 @@ class Commit with EquatableMixin {
   ///
   /// See also [Commit.parse].
   static List<Commit> parseCommits(String logOutput) {
-    final commitSections = logOutput
-        .trim()
-        .split('\ncommit ')
-        .map((String group) => 'commit ${group.trim()}')
-        .toList();
-    return parseCommitsStringList(commitSections);
+    return _commitLogsParser.parse(logOutput);
   }
 
   /// Creates a list of [Commit]s from git log items as list

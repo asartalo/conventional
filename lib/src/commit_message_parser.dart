@@ -1,15 +1,15 @@
-import 'package:conventional/conventional.dart';
 import 'package:petitparser/petitparser.dart';
-// ignore_for_file: avoid_print
+
+import 'commit_message.dart';
+import 'commit_message_footer.dart';
+import 'commit_message_header.dart';
+import 'parsing_elements.dart';
 
 /// A Parser for Commit Messages
 class CommitMessageParser extends GrammarParser {
   // ignore: public_member_api_docs
   CommitMessageParser() : super(const _CommitMessageGrammarDefinition());
 }
-
-final _newLine = Token.newlineParser();
-final _blankLine = _newLine & _newLine;
 
 class _CommitMessageGrammarDefinition extends GrammarDefinition {
   const _CommitMessageGrammarDefinition();
@@ -18,12 +18,12 @@ class _CommitMessageGrammarDefinition extends GrammarDefinition {
   Parser start() => ref(commit).end();
 
   Parser<CommitMessage> commit() => (ref(header) &
-              _blankLine.map((val) => 'BLANK').optional() &
+              blankLine.map((val) => 'BLANK').optional() &
               ref(body).optional() &
-              _blankLine.optional() &
+              blankLine.optional() &
               ref(footerSection).optional())
           .map((parsed) {
-        final header = parsed[0] as CommitHeader;
+        final header = parsed[0] as CommitMessageHeader;
         final body = parsed[2];
         final List<String> parsingErrors = [];
         if (header is ConventionalHeader) {
@@ -35,8 +35,6 @@ class _CommitMessageGrammarDefinition extends GrammarDefinition {
         final List<CommitMessageFooter> footerList =
             parsed[4] != null ? parsed[4] as List<CommitMessageFooter> : [];
 
-        // print(parsed[4]);
-
         return CommitMessage(
           header: header,
           body: body is String ? body.trim() : '',
@@ -45,9 +43,9 @@ class _CommitMessageGrammarDefinition extends GrammarDefinition {
         );
       });
 
-  Parser<CommitHeader> header() =>
+  Parser<CommitMessageHeader> header() =>
       (ref(conventionalHeader) | ref(regularHeader))
-          .map((value) => value as CommitHeader);
+          .map((value) => value as CommitMessageHeader);
   Parser<ConventionalHeader> conventionalHeader() => (ref(type) &
           ref(scope).optional().map((value) => value is String ? value : '') &
           char('!').optional().map((value) => value is String) &
@@ -71,7 +69,7 @@ class _CommitMessageGrammarDefinition extends GrammarDefinition {
           .map((values) => values[1]);
   Parser description() => ref(singleLineString);
 
-  Parser body() => (ref(footerSection).neg() | _newLine).plus().flatten();
+  Parser body() => (ref(footerSection).neg() | newLine).plus().flatten();
 
   Parser<List<CommitMessageFooter>> footerSection() =>
       (ref(footer) & endOfInput()).map((items) {
@@ -85,7 +83,7 @@ class _CommitMessageGrammarDefinition extends GrammarDefinition {
       });
 
   Parser footer() =>
-      ref(footerLine).separatedBy(_newLine, includeSeparators: false).plus();
+      ref(footerLine).separatedBy(newLine, includeSeparators: false).plus();
 
   Parser<CommitMessageFooter> footerLine() =>
       (ref(footerToken) & ref(footerSeparator) & ref(footerValue)).map(
@@ -101,5 +99,5 @@ class _CommitMessageGrammarDefinition extends GrammarDefinition {
       string(': ', 'no : separator wut') | string(' #', 'no # separator wut');
   Parser footerValue() => ref(singleLineString);
 
-  Parser singleLineString() => _newLine.neg().plus().flatten();
+  Parser singleLineString() => newLine.neg().plus().flatten();
 }
