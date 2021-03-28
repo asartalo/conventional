@@ -4,8 +4,6 @@
 
 A light-weight library for working with commits that follow the [Conventional Commits](https://www.conventionalcommits.org) specification.
 
-**NOTE:** At the moment, this library is only used on my projects and the API is a moving target. The Conventional Commit parser is not comprehensive. If you need a more mature solution, try [conventional_commits](https://pub.dev/packages/conventional_commit).
-
 ## Features
 
 - [Commit.parseCommits()][Commit.parseCommits] for parsing commits from a `git --no-pager log --no-decorate` command output.
@@ -44,3 +42,7 @@ Please file feature requests and bugs at the [issue tracker][tracker]. PR's are 
 [writeChangelog]: https://pub.dev/documentation/conventional/latest/conventional/writeChangelog.html
 [lintCommit]: https://pub.dev/documentation/conventional/latest/conventional/lintCommit.html
 [nextVersion]: https://pub.dev/documentation/conventional/latest/conventional/nextVersion.html
+
+## Other Solutions
+
+- [conventional_commits](https://pub.dev/packages/conventional_commit).

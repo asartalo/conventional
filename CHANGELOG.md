@@ -1,3 +1,6 @@
+## 0.2.0
+- Use petite_parser for robust commit parsing
+
 ## 0.1.0
 - Updated equatable dependency
 
