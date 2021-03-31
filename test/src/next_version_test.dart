@@ -47,35 +47,69 @@ List<Commit> parseCommits(List<String> commitList) {
 }
 
 void main() {
-  group('nextVersion()', () {
-    final originalVersion = Version.parse('1.0.0+8');
+  group(nextVersion, () {
+    group('with released version', () {
+      final originalVersion = Version.parse('1.0.1+8');
 
-    test('it does not change version when there is no need', () {
-      final newVersion =
-          nextVersion(originalVersion, parseCommits([chore, docs]));
+      test('it does not change version when there is no need', () {
+        final newVersion =
+            nextVersion(originalVersion, parseCommits([chore, docs]));
 
-      expect(newVersion.toString(), equals('1.0.0+8'));
+        expect(newVersion.toString(), equals('1.0.1+8'));
+      });
+
+      test('it bumps patch version when there is fix', () {
+        final newVersion =
+            nextVersion(originalVersion, parseCommits([chore, docs, fix]));
+
+        expect(newVersion.toString(), equals('1.0.2+8'));
+      });
+
+      test('it bumps minor version when there is feature', () {
+        final newVersion = nextVersion(
+            originalVersion, parseCommits([chore, docs, fix, feat]));
+
+        expect(newVersion.toString(), equals('1.1.0+8'));
+      });
+
+      test('it bumps major version when there is a breaking change', () {
+        final newVersion = nextVersion(
+            originalVersion, parseCommits([chore, docs, fix, feat, breaking]));
+
+        expect(newVersion.toString(), equals('2.0.0+8'));
+      });
     });
 
-    test('it bumps patch version when there is fix', () {
-      final newVersion =
-          nextVersion(originalVersion, parseCommits([chore, docs, fix]));
+    group('with pre-released version', () {
+      final originalVersion = Version.parse('0.1.1+8');
 
-      expect(newVersion.toString(), equals('1.0.1+8'));
-    });
+      test('it does not change version when there is no need', () {
+        final newVersion =
+            nextVersion(originalVersion, parseCommits([chore, docs]));
 
-    test('it bumps minor version when there is feature', () {
-      final newVersion =
-          nextVersion(originalVersion, parseCommits([chore, docs, fix, feat]));
+        expect(newVersion.toString(), equals('0.1.1+8'));
+      });
 
-      expect(newVersion.toString(), equals('1.1.0+8'));
-    });
+      test('it bumps patch version when there is fix', () {
+        final newVersion =
+            nextVersion(originalVersion, parseCommits([chore, docs, fix]));
 
-    test('it bumps major version when there is a breaking change', () {
-      final newVersion = nextVersion(
-          originalVersion, parseCommits([chore, docs, fix, feat, breaking]));
+        expect(newVersion.toString(), equals('0.1.2+8'));
+      });
 
-      expect(newVersion.toString(), equals('2.0.0+8'));
+      test('it bumps minor version when there is feature', () {
+        final newVersion = nextVersion(
+            originalVersion, parseCommits([chore, docs, fix, feat]));
+
+        expect(newVersion.toString(), equals('0.1.2+8'));
+      });
+
+      test('it bumps major version when there is a breaking change', () {
+        final newVersion = nextVersion(
+            originalVersion, parseCommits([chore, docs, fix, feat, breaking]));
+
+        expect(newVersion.toString(), equals('0.2.0+8'));
+      });
     });
   });
 }

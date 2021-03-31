@@ -28,24 +28,23 @@ Version nextVersion(Version currentVersion, List<Commit> commits) {
     }
   }
 
-  int major = 0;
-  int minor = 0;
-  int patch = 0;
+  late Version preVersion;
+  final isPre1 = currentVersion.major < 1;
 
   if (isMajor) {
-    major = 1;
+    preVersion = isPre1 ? currentVersion.nextMinor : currentVersion.nextMajor;
   } else if (isMinor) {
-    minor = 1;
+    preVersion = isPre1 ? currentVersion.nextPatch : currentVersion.nextMinor;
   } else if (isPatch) {
-    patch = 1;
+    preVersion = currentVersion.nextPatch;
   } else {
     return currentVersion;
   }
 
   return Version(
-    currentVersion.major + major,
-    currentVersion.minor + minor,
-    currentVersion.patch + patch,
+    preVersion.major,
+    preVersion.minor,
+    preVersion.patch,
     build: currentVersion.build.isEmpty ? null : currentVersion.build.join('.'),
     pre: currentVersion.preRelease.isEmpty
         ? null
