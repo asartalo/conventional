@@ -1,3 +1,5 @@
+## 0.2.1
+- Fix next_version increment logic
 ## 0.2.0
 - Use petite_parser for robust commit parsing
 
