@@ -54,7 +54,7 @@ commit cf6080079cd96cb4ccc2edca2ba9cacbcfd64704
 Author: Jane Doe <jane.doe@example.com>
 Date:   Sun Feb 7 12:58:06 2021 +0800
 
-    ci: try fixing problem with release
+    chore: fix precommit hooks
 
 commit 925fcd38fe8bd2653ea70d67155b8e31082cf4b2
 Author: Jane Doe <jane.doe@example.com>
@@ -191,8 +191,7 @@ commit fc9d8117b1074c3c965c5c1ccf845d784c026ac7
 Author: Jane Doe <jane.doe@example.com>
 Date:   Mon Feb 8 15:26:09 2021 +0800
 
-    fix fix release workflow
-''',
+    fix fix release workflow''',
     Commit(
       id: 'fc9d8117b1074c3c965c5c1ccf845d784c026ac7',
       author: const CommitAuthor(

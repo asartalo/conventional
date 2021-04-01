@@ -135,4 +135,23 @@ Date:   Mon Feb 8 15:26:09 2021 +0800
       description: 'fix fix release workflow',
     ),
   ),
+  'with description with commit word': _TestData(
+    '''
+commit fc9d8117b1074c3c965c5c1ccf845d784c026ac7
+Author: Jane Doe <jane.doe@example.com>
+Date:   Mon Feb 8 15:26:09 2021 +0800
+
+    chore: fix precommit hooks
+''',
+    Commit(
+      id: 'fc9d8117b1074c3c965c5c1ccf845d784c026ac7',
+      author: const CommitAuthor(
+        name: 'Jane Doe',
+        email: 'jane.doe@example.com',
+      ),
+      date: DateTime.parse('2021-02-08T15:26:09 +0800'),
+      type: 'chore',
+      description: 'fix precommit hooks',
+    ),
+  ),
 };

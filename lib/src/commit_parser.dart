@@ -154,20 +154,25 @@ class _CommitLogGrammarDefinition extends GrammarDefinition {
       (string('commit ') & ref(commitId)).map((val) => val[1] as String);
   Parser commitId() => word().plus().flatten();
 
-  Parser<String> commitMessageSection() =>
-      ((commitLine().neg().plus()).flatten()).map(unindentMessage);
+  Parser<String> commitMessageSection() => ref(indentedLine)
+      .map((value) => value[1] as String)
+      .separatedBy(newLine, includeSeparators: true)
+      .plus()
+      .flatten();
+
+  Parser indentedLine() => ref(indentedFilledLine) | ref(indentedBlankLine);
+
+  Parser indentedFilledLine() =>
+      ref(optionalIndentation) & newLine.neg().plus().flatten();
+  Parser indentedBlankLine() => ref(optionalIndentation) & newLine;
+  Parser optionalIndentation() => string('    ').optional();
 
   Commit transformCommit(List<dynamic> parsed) {
     final id = parsed[0] as String;
     final meta = parsed[2] as _Meta;
 
-    final message = CommitMessage.parse(unindentMessage(parsed[4] as String));
+    final message = CommitMessage.parse(parsed[4] as String);
     return Commit(
         id: id, author: meta.author, date: meta.date, message: message);
-  }
-
-  String unindentMessage(String parsed) {
-    return parsed.replaceAllMapped(
-        RegExp(r'([\n\r]+)    '), (Match match) => match.group(1)!);
   }
 }
