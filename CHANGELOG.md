@@ -1,3 +1,6 @@
+## 0.2.3
+- `writeChangelogToFile()` for writing changelogs to `File`
+
 ## 0.2.2
 - Fix parsing problem when there is 'commit' in commit message
 
