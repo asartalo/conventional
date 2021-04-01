@@ -1,6 +1,6 @@
 name: conventional
 description: A light-weight library for working with commits that follow the Conventional Commits specification.
-version: 0.2.1
+version: 0.2.2
 homepage: https://github.com/asartalo/conventional
 
 environment:
