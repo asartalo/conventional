@@ -9,9 +9,9 @@ import 'zero_pad.dart';
 ///
 /// It first checks if [commits] have "releaseable" commits using
 /// [hasReleasableCommits]. If it doesn't, it will return `null`. If it does,
-/// it will write to the [changelogFilePath] with given [version] string for the
-/// changes within within [commits] and [now] for the date. This will then
-/// return with a [ChangeSummary].
+/// it will write to the file specified by [changelogFilePath] with given
+/// [version] string for the changes within within [commits] and [now] for the
+/// date. This will then return with a [ChangeSummary].
 ///
 /// If [now] isn't provided, it will default to `DateTime.now()`.
 Future<ChangeSummary?> writeChangelog({
@@ -20,17 +20,63 @@ Future<ChangeSummary?> writeChangelog({
   required String version,
   DateTime? now,
 }) async {
-  if (hasReleasableCommits(commits)) {
-    now ??= DateTime.now();
-    final file = File(changelogFilePath);
+  final file = File(changelogFilePath);
+  return writeChangelogToFile(
+    commits: commits,
+    file: file,
+    version: version,
+    now: now,
+  );
+}
+
+/// Writes to a changelog file based on commits.
+///
+/// It first checks if [commits] have "releaseable" commits using
+/// [hasReleasableCommits]. If it doesn't, it will return `null`. If it does,
+/// it will write to the [file] with given [version] string for the changes
+/// within within [commits] and [now] for the date. This will then return with a
+/// [ChangeSummary].
+///
+/// If [now] isn't provided, it will default to `DateTime.now()`.
+Future<ChangeSummary?> writeChangelogToFile({
+  required List<Commit> commits,
+  required File file,
+  required String version,
+  DateTime? now,
+}) async {
+  final summary = await changelogSummary(
+    commits: commits,
+    version: version,
+    now: now,
+  );
+  if (summary is ChangeSummary) {
     String oldContents = '';
     if (await file.exists()) {
       oldContents = (await file.readAsString()).trim();
     }
-    final summary = _writeContents(commits, Version.parse(version), now);
     await file.writeAsString(oldContents.isEmpty
         ? summary.toMarkdown()
         : '${summary.toMarkdown()}\n$oldContents\n');
+    return summary;
+  }
+  return null;
+}
+
+/// Outputs a would-be content to a changelog file based on commits.
+///
+/// It first checks if [commits] have "releaseable" commits using
+/// [hasReleasableCommits]. If it doesn't, it will return `null`. If it does,
+/// it returns with the contents with the given [version] string for the
+/// changes within within [commits] and [now] for the date. This will then
+/// return with a [ChangeSummary].
+Future<ChangeSummary?> changelogSummary({
+  required List<Commit> commits,
+  required String version,
+  DateTime? now,
+}) async {
+  if (hasReleasableCommits(commits)) {
+    now ??= DateTime.now();
+    final summary = _writeContents(commits, Version.parse(version), now);
     return summary;
   }
   return null;
