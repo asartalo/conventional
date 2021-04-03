@@ -86,7 +86,7 @@ void main() {
     group('when CHANGELOG can be generated or updated', () {
       final Map<String, _Test> testData = {
         'all stuff': const _Test(
-          [chore, docs, fix, feat, feat2, feat3, feat4, breaking],
+          [chore, docs, fix, feat, feat2, feat3, feat4, breaking, perf],
           '''
 # 1.0.0 (2021-02-09)
 
@@ -101,9 +101,28 @@ void main() {
 - **communication:** it talks ([#4](issues/4)) ([a25fcd3](commit/a25fcd3))
 - **communication:** it sends sms ([#5](issues/5)) ([b25fcd3](commit/b25fcd3))
 
+## Performance Improvements
+
+- make jumping faster ([40a511b](commit/40a511b))
+
 ## BREAKING CHANGES
 
 - null-safety ([#6](issues/6)) ([43cf9b7](commit/43cf9b7))
+''',
+        ),
+        'fix and features only': const _Test(
+          [fix, feat, feat2],
+          '''
+# 1.0.0 (2021-02-09)
+
+## Bug Fixes
+
+- eat healthy ([#3](issues/3)) ([cf60800](commit/cf60800))
+
+## Features
+
+- **movement:** it jumps ([#1](issues/1)) ([925fcd3](commit/925fcd3))
+- **communication:** it talks ([#4](issues/4)) ([a25fcd3](commit/a25fcd3))
 ''',
         ),
       };

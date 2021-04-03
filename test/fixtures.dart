@@ -22,6 +22,14 @@ Date:   Sun Feb 7 12:58:06 2021 +0800
     fix: eat healthy (#3)
 ''';
 
+const perf = '''
+commit 40a511ba27e491bdacd17db0272e3638ddec0feb
+Author: Jane Doe <jane.doe@example.com>
+Date:   Sun Feb 7 12:20:06 2021 +0800
+
+    perf: make jumping faster
+''';
+
 const feat = '''
 commit 925fcd38fe8bd2653ea70d67155b8e31082cf4b2
 Author: Jane Doe <jane.doe@example.com>

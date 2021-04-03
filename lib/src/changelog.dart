@@ -121,6 +121,9 @@ class CommitSections with EquatableMixin {
   /// Bug fix commits
   final List<Commit> bugFixes = [];
 
+  /// Performance improvement commits
+  final List<Commit> performance = [];
+
   /// Commits that add new features
   final List<Commit> features = [];
 
@@ -156,6 +159,8 @@ class CommitSections with EquatableMixin {
       breakingChanges.add(commit);
     } else if (commit.type == 'fix') {
       bugFixes.add(commit);
+    } else if (commit.type == 'perf') {
+      performance.add(commit);
     } else if (commit.type == 'feat') {
       features.add(commit);
     } else {
@@ -200,6 +205,7 @@ class ChangeSummary extends Equatable {
       _versionHeadline(version.toString(), date),
       _changeSection('Bug Fixes', sections.bugFixes),
       _changeSection('Features', sections.features),
+      _changeSection('Performance Improvements', sections.performance),
       _changeSection('BREAKING CHANGES', sections.breakingChanges),
     ].whereType<String>().toList();
 
