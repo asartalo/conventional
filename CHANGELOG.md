@@ -1,3 +1,13 @@
+# 0.2.4 (2021-04-03)
+
+## Bug Fixes
+
+- parsing logs when empty [#2](issues/2) ([4c48f79](commit/4c48f79))
+
+## Features
+
+- **changelog:** perf commit types [#1](issues/1) ([4af7934](commit/4af7934))
+
 ## 0.2.3
 - `writeChangelogToFile()` for writing changelogs to `File`
 
