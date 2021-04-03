@@ -87,7 +87,7 @@ jobs:
 
     - name: Hookup pub tools
       run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
-      
+
     - name: Check if pub tools are available
       run: which release_tools
 
@@ -109,7 +109,7 @@ jobs:
 
     - run: echo ${{ steps.shouldRelease.outputs.value }}
 
-    - name: If we should release get the next version
+    - name: If we can release, get the next version
       if: steps.shouldRelease.outputs.value == 'yes'
       id: nextVersion
       run: echo "::set-output name=value::$(release_tools next_version --from ${{ steps.lastCommitId.outputs.value }})"
@@ -126,7 +126,17 @@ jobs:
       if: steps.shouldRelease.outputs.value == 'yes'
       run: |
         output=$(release_tools changelog --from ${{ steps.lastCommitId.outputs.value }} ${{ steps.nextVersion.outputs.value }})
+        output="${output//'%'/'%25'}"
+        output="${output//$'\n'/'%0A'}"
+        output="${output//$'\r'/'%0D'}"
         echo "::set-output name=summary::$output"
+
+    - name: Changelog summary
+      run: |
+        read -r -d '' TEMPVAR << TEMPVAREOF
+        "${{ steps.changelog.outputs.summary }}"
+        TEMPVAREOF
+        echo $TEMPVAR
 
     - name: Commit Release
       if: steps.shouldRelease.outputs.value == 'yes'
