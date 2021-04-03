@@ -86,7 +86,7 @@ jobs:
       run: pub global activate release_tools
 
     - name: Hookup pub tools
-      run: export PATH="$PATH":"$HOME/.pub-cache/bin"
+      run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
       
     - name: Check if pub tools are available
       run: which release_tools
