@@ -18,27 +18,34 @@ void main() {
   group('Commit.parseCommits()', () {
     late List<Commit> commits;
 
-    setUp(() {
-      commits = Commit.parseCommits(testLog);
+    test('returns an empty list when logs string is empty', () {
+      commits = Commit.parseCommits('');
+      expect(commits, equals([]));
     });
 
-    test('it parses all logs', () {
-      expect(commits.length, equals(6));
-    });
+    group('sample commit logs', () {
+      setUp(() {
+        commits = Commit.parseCommits(testLog);
+      });
 
-    test('it correctly parses logs', () {
-      expect(
-        commits.first.id,
-        equals('fc9d8117b1074c3c965c5c1ccf845d784c026ac7'),
-      );
-      expect(
-        commits.last.id,
-        equals('18bf98f5cddfecc69b26285b6edca063f1a8b1ec'),
-      );
-      expect(
-        commits[3].footer.first.toString(),
-        endsWith('BREAKING CHANGE: uses null-safety'),
-      );
+      test('it parses all logs', () {
+        expect(commits.length, equals(6));
+      });
+
+      test('it correctly parses logs', () {
+        expect(
+          commits.first.id,
+          equals('fc9d8117b1074c3c965c5c1ccf845d784c026ac7'),
+        );
+        expect(
+          commits.last.id,
+          equals('18bf98f5cddfecc69b26285b6edca063f1a8b1ec'),
+        );
+        expect(
+          commits[3].footer.first.toString(),
+          endsWith('BREAKING CHANGE: uses null-safety'),
+        );
+      });
     });
   });
 }

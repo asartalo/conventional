@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:equatable/equatable.dart';
 
 import 'commit_author.dart';
@@ -111,6 +113,9 @@ class Commit with EquatableMixin {
   ///
   /// See also [Commit.parse].
   static List<Commit> parseCommits(String logOutput) {
+    if (logOutput.trim().isEmpty) {
+      return [];
+    }
     return _commitLogsParser.parse(logOutput);
   }
 
