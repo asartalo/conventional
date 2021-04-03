@@ -83,7 +83,7 @@ jobs:
       run: pub get
 
     - name: Install release_tools
-      run: pub global activate relase_tools
+      run: pub global activate release_tools
 
     - name: Get current version
       id: currentVersion
