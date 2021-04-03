@@ -132,6 +132,7 @@ jobs:
         echo "::set-output name=summary::$output"
 
     - name: Changelog summary
+      if: steps.shouldRelease.outputs.value == 'yes'
       run: |
         read -r -d '' TEMPVAR << TEMPVAREOF
         "${{ steps.changelog.outputs.summary }}"
