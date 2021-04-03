@@ -85,6 +85,12 @@ jobs:
     - name: Install release_tools
       run: pub global activate release_tools
 
+    - name: Hookup pub tools
+      run: export PATH="$PATH":"$HOME/.pub-cache/bin"
+      
+    - name: Check if pub tools are available
+      run: which release_tools
+
     - name: Get current version
       id: currentVersion
       run: echo "::set-output name=value::$(release_tools current_version)"
