@@ -114,12 +114,12 @@ jobs:
       id: nextVersion
       run: echo "::set-output name=value::$(release_tools next_version --from ${{ steps.lastCommitId.outputs.value }})"
 
-    - run: echo ${{ steps.nextVersion.outputs.value }}
+    - run: echo "${{ steps.nextVersion.outputs.value }}"
 
     - name: Update version
       if: steps.shouldRelease.outputs.value == 'yes'
       id: updateVersion
-      run: release_tools update_version ${{ steps.nextVersion.outputs.value }}
+      run: release_tools update_version "${{ steps.nextVersion.outputs.value }}""
 
     - name: Write changelog
       id: changelog
@@ -130,14 +130,6 @@ jobs:
         output="${output//$'\n'/'%0A'}"
         output="${output//$'\r'/'%0D'}"
         echo "::set-output name=summary::$output"
-
-    - name: Changelog summary
-      if: steps.shouldRelease.outputs.value == 'yes'
-      run: |
-        read -r -d '' TEMPVAR << TEMPVAREOF
-        "${{ steps.changelog.outputs.summary }}"
-        TEMPVAREOF
-        echo $TEMPVAR
 
     - name: Commit Release
       if: steps.shouldRelease.outputs.value == 'yes'
