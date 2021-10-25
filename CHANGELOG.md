@@ -1,3 +1,9 @@
+# 0.3.0 (2021-10-25)
+
+## BREAKING CHANGES
+
+- incrementBuild, afterV1, and pre flags ([8d24c86](commit/8d24c86))
+
 # 0.2.4 (2021-04-03)
 
 ## Bug Fixes
