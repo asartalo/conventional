@@ -13,7 +13,13 @@ import 'commit.dart';
 /// create my own.
 ///
 /// TODO: Perhaps asks the kind people at pub_semver to have this feature.
-Version nextVersion(Version currentVersion, List<Commit> commits) {
+Version nextVersion(
+  Version currentVersion,
+  List<Commit> commits, {
+  bool incrementBuild = false,
+  bool afterV1 = false,
+  String? pre,
+}) {
   bool isMajor = false;
   bool isMinor = false;
   bool isPatch = false;
@@ -28,26 +34,43 @@ Version nextVersion(Version currentVersion, List<Commit> commits) {
     }
   }
 
-  late Version preVersion;
+  late Version prepVersion;
   final isPre1 = currentVersion.major < 1;
+  final basis =
+      Version(currentVersion.major, currentVersion.minor, currentVersion.patch);
 
-  if (isMajor) {
-    preVersion = isPre1 ? currentVersion.nextMinor : currentVersion.nextMajor;
-  } else if (isMinor) {
-    preVersion = isPre1 ? currentVersion.nextPatch : currentVersion.nextMinor;
-  } else if (isPatch) {
-    preVersion = currentVersion.nextPatch;
+  if (isPre1 && afterV1 && (isMajor || isMinor || isPatch)) {
+    prepVersion = currentVersion.nextMajor;
   } else {
-    return currentVersion;
+    if (isMajor) {
+      prepVersion = isPre1 ? basis.nextMinor : basis.nextMajor;
+    } else if (isMinor) {
+      prepVersion = isPre1 ? basis.nextPatch : basis.nextMinor;
+    } else if (isPatch) {
+      prepVersion = basis.nextPatch;
+    } else {
+      return currentVersion;
+    }
   }
 
   return Version(
-    preVersion.major,
-    preVersion.minor,
-    preVersion.patch,
-    build: currentVersion.build.isEmpty ? null : currentVersion.build.join('.'),
-    pre: currentVersion.preRelease.isEmpty
+    prepVersion.major,
+    prepVersion.minor,
+    prepVersion.patch,
+    build: currentVersion.build.isEmpty
         ? null
-        : currentVersion.preRelease.join('.'),
+        : _addBuild(currentVersion, incrementBuild: incrementBuild),
+    pre: pre is String
+        ? pre
+        : currentVersion.preRelease.isEmpty
+            ? null
+            : currentVersion.preRelease.join('.'),
   );
+}
+
+String _addBuild(Version version, {bool incrementBuild = false}) {
+  return version.build
+      .map(
+          (section) => incrementBuild && section is int ? section + 1 : section)
+      .join('.');
 }
