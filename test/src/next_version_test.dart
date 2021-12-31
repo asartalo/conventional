@@ -139,7 +139,7 @@ void main() {
           expected: '0.2.0',
         ),
       ],
-      'with pre-V1 and afterV1 flag': [
+      'with pre-V1 version and afterV1 flag': [
         TestItem(
           'it does not change version when there is no need',
           originalVersion: preV1Version,
@@ -167,6 +167,36 @@ void main() {
           commits: [fix, chore, docs, breaking, feat],
           afterV1: true,
           expected: '1.0.0',
+        ),
+      ],
+      'with released version and afterV1 flag': [
+        TestItem(
+          'it does not change version when there is no need',
+          originalVersion: originalReleasedVersion,
+          commits: [chore, docs],
+          afterV1: true,
+          expected: '1.0.1',
+        ),
+        TestItem(
+          'it bumps patch version when there is fix',
+          originalVersion: originalReleasedVersion,
+          commits: [chore, docs, fix],
+          afterV1: true,
+          expected: '1.0.2',
+        ),
+        TestItem(
+          'it bumps minor version when there is feature',
+          originalVersion: originalReleasedVersion,
+          commits: [feat, chore, fix, docs],
+          afterV1: true,
+          expected: '1.1.0',
+        ),
+        TestItem(
+          'it bumps major version when there is a breaking change',
+          originalVersion: originalReleasedVersion,
+          commits: [feat, breaking, chore, fix, docs],
+          afterV1: true,
+          expected: '2.0.0',
         ),
       ],
       'with build number and incrementBuild set': [
