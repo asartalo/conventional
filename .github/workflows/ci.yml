@@ -33,9 +33,8 @@ jobs:
       - name: Check if we were able to save branch info
         run: echo ${{ steps.branchinfo.outputs.branch }}
 
-      - uses: cedx/setup-dart@v2
-        with:
-          release-channel: stable
+      - name: Setup Dart SDK
+        uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
 
       # Checkout
       - uses: actions/checkout@v2
