@@ -10,7 +10,7 @@ jobs:
   commitlint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - uses: wagoid/commitlint-github-action@v2
@@ -37,10 +37,10 @@ jobs:
         uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
 
       # Checkout
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Get dependencies
-        run: pub get
+        run: dart pub get
 
       - name: Check dart formatting
         run: dart format --set-exit-if-changed .
@@ -49,16 +49,13 @@ jobs:
         run: dart analyze .
 
       - name: Run Tests with coverage
-        run: dart test --coverage="coverage"
-
-      - name: Prepare coverage
-        run: pub run coverage:format_coverage --lcov --in=coverage --out=lcov.info --packages=.packages --report-on=lib
+        run: dart run coverage:test_with_coverage
 
       - name: Upload coverage
         uses: coverallsapp/github-action@v1.1.2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: lcov.info
+          path-to-lcov: coverage/lcov.info
 
   release:
     name: Release
@@ -72,15 +69,15 @@ jobs:
       - name: Setup Dart SDK
         uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
       - name: Get dependencies
-        run: pub get
+        run: dart pub get
 
       - name: Install release_tools
-        run: pub global activate release_tools
+        run: dart pub global activate release_tools
 
       - name: Hookup pub tools
         run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
@@ -88,48 +85,71 @@ jobs:
       - name: Check if pub tools are available
         run: which release_tools
 
-      - name: Get current version
-        id: currentVersion
-        run: echo "::set-output name=value::$(release_tools current_version)"
-
-      - run: echo ${{ steps.currentVersion.outputs.value }}
-
-      - name: Get commitId of last tag of that version
-        id: lastCommitId
-        run: echo "::set-output name=value::$(release_tools remote_tag_id ${{ steps.currentVersion.outputs.value }})"
-
-      - run: echo ${{ steps.lastCommitId.outputs.value }}
-
-      - name: Use commitId to check if we should release
-        id: shouldRelease
-        run: echo "::set-output name=value::$(release_tools should_release --from ${{ steps.lastCommitId.outputs.value }})"
-
-      - run: echo ${{ steps.shouldRelease.outputs.value }}
-
-      - name: If we can release, get the next version
-        if: steps.shouldRelease.outputs.value == 'yes'
-        id: nextVersion
-        run: echo "::set-output name=value::$(release_tools next_version --from ${{ steps.lastCommitId.outputs.value }})"
-
-      - run: echo "${{ steps.nextVersion.outputs.value }}"
-
-      - name: Update version
-        if: steps.shouldRelease.outputs.value == 'yes'
-        id: updateVersion
-        run: release_tools update_version "${{ steps.nextVersion.outputs.value }}"
-
-      - name: Write changelog
-        id: changelog
-        if: steps.shouldRelease.outputs.value == 'yes'
+      - name: Prepare release
         run: |
-          output=$(release_tools changelog --from ${{ steps.lastCommitId.outputs.value }} ${{ steps.nextVersion.outputs.value }})
-          output="${output//'%'/'%25'}"
-          output="${output//$'\n'/'%0A'}"
-          output="${output//$'\r'/'%0D'}"
-          echo "::set-output name=summary::$output"
+          release_tools prepare_release -w
+          cat VERSION.txt
+
+      - name: Get Release Info
+        id: releaseInfo
+        run: |
+          if [ -e VERSION.txt ]
+          then
+            shouldRelease="yes"
+            releaseVersion=$(cat VERSION.txt)
+            summary=$(cat RELEASE_SUMMARY.txt)
+            echo "::set-output name=version::${releaseVersion}"
+            echo "::set-output name=summary::${summary}"
+          else
+            shouldRelease="false"
+          fi
+          echo "::set-output name=shouldRelease::${shouldRelease}"
+
+      - name: Update version for sentinel
+        run: release_tools update_version --file="lib/sentinel_version.dart" ${{ steps.nextVersion.outputs.value }}
 
       - name: Commit Release
-        if: steps.shouldRelease.outputs.value == 'yes'
+        if: steps.releaseInfo.outputs.shouldRelease == 'yes'
+        run: |
+          git diff
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add .
+          git commit -m "chore(release): release for ${{ steps.releaseInfo.outputs.version }}"
+          git push
+
+      - name: Create Release
+        if: steps.releaseInfo.outputs.shouldRelease == 'yes'
+        id: createRelease
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.releaseInfo.outputs.version }}
+          release_name: Release ${{ steps.releaseInfo.outputs.version }}
+          body: |
+            Changes in this Release
+
+            ${{ steps.releaseInfo.outputs.summary }}
+
+          draft: false
+          prerelease: false
+
+      # Publish
+      - name: Setup credentials
+        if: steps.releaseInfo.outputs.shouldRelease == 'yes'
+        run: |
+          mkdir -p ~/.pub-cache
+          cat <<EOF > ~/.pub-cache/credentials.json
+          ${{ secrets.PUB_CREDENTIALS }}
+          EOF
+
+      - name: Publish package
+        if: steps.releaseInfo.outputs.shouldRelease == 'yes'
+        run: dart pub publish -f
+
+      - name: Commit Release
+        if: steps.releaseInfo.outputs.shouldRelease == 'yes'
         run: |
           git diff
           git config user.name github-actions
@@ -139,7 +159,7 @@ jobs:
           git push
 
       - name: Create Release
-        if: steps.shouldRelease.outputs.value == 'yes'
+        if: steps.releaseInfo.outputs.shouldRelease == 'yes'
         id: createRelease
         uses: actions/create-release@v1
         env:
@@ -157,7 +177,7 @@ jobs:
 
       # Publish
       - name: Setup credentials
-        if: steps.shouldRelease.outputs.value == 'yes'
+        if: steps.releaseInfo.outputs.shouldRelease == 'yes'
         run: |
           mkdir -p ~/.pub-cache
           cat <<EOF > ~/.pub-cache/credentials.json
@@ -165,5 +185,5 @@ jobs:
           EOF
 
       - name: Publish package
-        if: steps.shouldRelease.outputs.value == 'yes'
+        if: steps.releaseInfo.outputs.shouldRelease == 'yes'
         run: pub publish -f
