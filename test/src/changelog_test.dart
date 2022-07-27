@@ -27,6 +27,12 @@ void main() {
       }
     });
 
+    setUp(() async {
+      if (_exists(changelogFilePath)) {
+        await File(changelogFilePath).delete();
+      }
+    });
+
     tearDown(() async {
       if (_exists(changelogFilePath)) {
         await File(changelogFilePath).delete();
@@ -173,7 +179,6 @@ void main() {
 class _Test {
   final List<String> commits;
   final String content;
-  final String before;
 
-  const _Test(this.commits, this.content, {this.before = ''});
+  const _Test(this.commits, this.content);
 }

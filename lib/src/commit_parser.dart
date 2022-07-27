@@ -47,16 +47,22 @@ class _Meta {
   });
 }
 
-class _CommitMetaGrammarParser extends GrammarParser {
-  _CommitMetaGrammarParser() : super(_CommitMetaGrammarDefinition());
+class _CommitMetaGrammarParser {
+  final Parser parser;
+
+  _CommitMetaGrammarParser() : parser = _CommitMetaGrammarDefinition().build();
+
+  Result parse(String input) {
+    return parser.parse(input);
+  }
 }
 
 class _CommitMetaGrammarDefinition extends GrammarDefinition {
   @override
-  Parser start() => ref(meta).end();
+  Parser start() => ref0(meta).end();
 
   Parser<_Meta> meta() =>
-      (ref(authorLine) | ref(dateLine) | ref(genericMetaLine))
+      (ref0(authorLine) | ref0(dateLine) | ref0(genericMetaLine))
           .separatedBy(newLine, includeSeparators: false)
           .map((List<dynamic> parsed) {
         late CommitAuthor author;
@@ -67,8 +73,8 @@ class _CommitMetaGrammarDefinition extends GrammarDefinition {
             date = val;
           } else if (val is CommitAuthor) {
             author = val;
-          } else {
-            others[val[0] as String] = val[1] as String;
+          } else if (val is List<String>) {
+            others[val[0]] = val[1];
           }
         }
         return _Meta(date: date, author: author, others: others);
@@ -78,24 +84,24 @@ class _CommitMetaGrammarDefinition extends GrammarDefinition {
       (wholeWord & colon & newLine.neg().plus().flatten())
           .map((parsed) => [parsed[0], parsed[1]]);
 
-  Parser<CommitAuthor> authorLine() => (string('Author: ') & ref(author))
+  Parser<CommitAuthor> authorLine() => (string('Author: ') & ref0(author))
       .map((parsed) => parsed[1] as CommitAuthor);
   Parser<CommitAuthor> author() =>
-      (ref(authorName) & char('<') & ref(email) & char('>'))
+      (ref0(authorName) & char('<') & ref0(email) & char('>'))
           .map(transformAuthor);
   Parser authorName() => char('<').neg().plus().trim().flatten();
   Parser email() =>
       (char('@').neg().plus() & char('@') & char('>').neg().plus()).flatten();
 
   Parser<DateTime> dateLine() =>
-      (string('Date:') & whitespace().plus() & ref(date))
+      (string('Date:') & whitespace().plus() & ref0(date))
           .map((val) => val[2] as DateTime);
   Parser<DateTime> date() => (wholeWord &
-          ref(month) &
-          ref(day) &
-          ref(time) &
-          ref(year) &
-          ref(timezone))
+          ref0(month) &
+          ref0(day) &
+          ref0(time) &
+          ref0(year) &
+          ref0(timezone))
       .map(transformDate);
   Parser month() => wholeWord;
   Parser day() => number;
@@ -119,8 +125,13 @@ class _CommitMetaGrammarDefinition extends GrammarDefinition {
   }
 }
 
-class _CommitLogGrammarParser extends GrammarParser {
-  _CommitLogGrammarParser() : super(_CommitLogGrammarDefinition());
+class _CommitLogGrammarParser {
+  final Parser parser;
+  _CommitLogGrammarParser() : parser = _CommitLogGrammarDefinition().build();
+
+  Result parse(String input) {
+    return parser.parse(input);
+  }
 }
 
 String _zeroPad(int n) {
@@ -133,13 +144,13 @@ class _CommitLogGrammarDefinition extends GrammarDefinition {
   final _CommitMetaGrammarParser _metaParser = _CommitMetaGrammarParser();
 
   @override
-  Parser start() => ref(log).end();
+  Parser start() => ref0(log).end();
 
-  Parser log() => (ref(commitLine) &
+  Parser log() => (ref0(commitLine) &
           newLine &
-          ref(commitMeta) &
+          ref0(commitMeta) &
           blankLine &
-          ref(commitMessageSection))
+          ref0(commitMessageSection))
       .map(transformCommit);
 
   Parser<_Meta> commitMeta() => blankLine.neg().plus().flatten().map((parsed) {
@@ -151,20 +162,20 @@ class _CommitLogGrammarDefinition extends GrammarDefinition {
       });
 
   Parser<String> commitLine() =>
-      (string('commit ') & ref(commitId)).map((val) => val[1] as String);
+      (string('commit ') & ref0(commitId)).map((val) => val[1] as String);
   Parser commitId() => word().plus().flatten();
 
-  Parser<String> commitMessageSection() => ref(indentedLine)
-      .map((value) => value[1] as String)
+  Parser<String> commitMessageSection() => ref0(indentedLine)
+      .map((value) => (value is List<String>) ? value[1] : '')
       .separatedBy(newLine, includeSeparators: true)
       .plus()
       .flatten();
 
-  Parser indentedLine() => ref(indentedFilledLine) | ref(indentedBlankLine);
+  Parser indentedLine() => ref0(indentedFilledLine) | ref0(indentedBlankLine);
 
   Parser indentedFilledLine() =>
-      ref(optionalIndentation) & newLine.neg().plus().flatten();
-  Parser indentedBlankLine() => ref(optionalIndentation) & newLine;
+      ref0(optionalIndentation) & newLine.neg().plus().flatten();
+  Parser indentedBlankLine() => ref0(optionalIndentation) & newLine;
   Parser optionalIndentation() => string('    ').optional();
 
   Commit transformCommit(List<dynamic> parsed) {

@@ -114,12 +114,10 @@ class _FT {
   final String description;
   final String commit;
   final String result;
-  final LintConfig? config;
 
   _FT(
     this.description, {
     required this.commit,
     required this.result,
-    this.config,
   });
 }
