@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:conventional/conventional.dart';
+import 'package:mutex/mutex.dart';
 import 'package:path/path.dart' as paths;
 import 'package:test/test.dart';
 
@@ -14,6 +15,7 @@ bool _exists(String path) {
 }
 
 void main() {
+  final m = ReadWriteMutex();
   group('writeChangelog()', () {
     final tmpDir = Directory(_tmpDir);
     final changelogFilePath = paths.join(_tmpDir, 'CHANGELOG.md');
@@ -29,13 +31,17 @@ void main() {
 
     setUp(() async {
       if (_exists(changelogFilePath)) {
-        await File(changelogFilePath).delete();
+        await m.protectWrite(() async {
+          await File(changelogFilePath).delete();
+        });
       }
     });
 
     tearDown(() async {
       if (_exists(changelogFilePath)) {
-        await File(changelogFilePath).delete();
+        await m.protectWrite(() async {
+          await File(changelogFilePath).delete();
+        });
       }
     });
 
@@ -54,12 +60,14 @@ void main() {
       noChangeLogs.forEach((condition, commitsStrings) {
         Future<void> setupFunction() async {
           commits = Commit.parseCommitsStringList(commitsStrings);
-          await writeChangelog(
-            commits: commits,
-            changelogFilePath: changelogFilePath,
-            version: version,
-            now: now,
-          );
+          await m.protectWrite(() async {
+            await writeChangelog(
+              commits: commits,
+              changelogFilePath: changelogFilePath,
+              version: version,
+              now: now,
+            );
+          });
         }
 
         group('if $condition', () {
@@ -69,20 +77,26 @@ void main() {
             });
 
             test('does not create a changelog if $condition', () async {
-              expect(_exists(changelogFilePath), false);
+              await m.protectRead(() async {
+                expect(_exists(changelogFilePath), false);
+              });
             });
           });
 
           group('if there is an existing changelog file', () {
             setUp(() async {
               final file = File(changelogFilePath);
-              await file.writeAsString('');
+              await m.protectWrite(() async {
+                await file.writeAsString('');
+              });
               await setupFunction();
             });
 
             test('does not update a file if $condition', () async {
               final file = File(changelogFilePath);
-              expect(await file.readAsString(), equals(''));
+              await m.protectRead(() async {
+                expect(await file.readAsString(), equals(''));
+              });
             });
           });
         });
@@ -136,12 +150,14 @@ void main() {
       testData.forEach((key, data) {
         Future<void> setupProper() async {
           commits = Commit.parseCommitsStringList(data.commits);
-          await writeChangelog(
-            commits: commits,
-            changelogFilePath: changelogFilePath,
-            version: version,
-            now: now,
-          );
+          await m.protectWrite(() async {
+            await writeChangelog(
+              commits: commits,
+              changelogFilePath: changelogFilePath,
+              version: version,
+              now: now,
+            );
+          });
         }
 
         group('$key and no changelog file yet', () {
@@ -149,26 +165,34 @@ void main() {
             await setupProper();
           });
 
-          test('writes the changelog file', () {
-            expect(_exists(changelogFilePath), true);
+          test('writes the changelog file', () async {
+            await m.protectRead(() async {
+              expect(_exists(changelogFilePath), true);
+            });
           });
 
           test('writes changelog contents to the file', () async {
-            final contents = await File(changelogFilePath).readAsString();
-            expect(contents, equals(data.content));
+            await m.protectRead(() async {
+              final contents = await File(changelogFilePath).readAsString();
+              expect(contents, equals(data.content));
+            });
           });
         });
 
         group('$key and a changelog file already exists', () {
           setUp(() async {
-            final file = File(changelogFilePath);
-            await file.writeAsString('Hello world.\n');
+            await m.protectWrite(() async {
+              final file = File(changelogFilePath);
+              await file.writeAsString('Hello world.\n');
+            });
             await setupProper();
           });
 
           test('writes changelog contents to the file', () async {
-            final contents = await File(changelogFilePath).readAsString();
-            expect(contents, equals('${data.content}\nHello world.\n'));
+            await m.protectRead(() async {
+              final contents = await File(changelogFilePath).readAsString();
+              expect(contents, equals('${data.content}\nHello world.\n'));
+            });
           });
         });
       });
