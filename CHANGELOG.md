@@ -1,3 +1,13 @@
+# 0.3.1 (2022-07-27)
+
+## Bug Fixes
+
+- updating dependencies ([e75630e](commit/e75630e))
+
+## Features
+
+- updated petitparser to v5 ([cd20213](commit/cd20213))
+
 # 0.3.0 (2021-10-25)
 
 ## BREAKING CHANGES
