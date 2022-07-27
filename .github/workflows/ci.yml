@@ -105,9 +105,6 @@ jobs:
           fi
           echo "::set-output name=shouldRelease::${shouldRelease}"
 
-      - name: Update version for sentinel
-        run: release_tools update_version --file="lib/sentinel_version.dart" ${{ steps.nextVersion.outputs.value }}
-
       - name: Commit Release
         if: steps.releaseInfo.outputs.shouldRelease == 'yes'
         run: |
@@ -131,46 +128,6 @@ jobs:
             Changes in this Release
 
             ${{ steps.releaseInfo.outputs.summary }}
-
-          draft: false
-          prerelease: false
-
-      # Publish
-      - name: Setup credentials
-        if: steps.releaseInfo.outputs.shouldRelease == 'yes'
-        run: |
-          mkdir -p ~/.pub-cache
-          cat <<EOF > ~/.pub-cache/credentials.json
-          ${{ secrets.PUB_CREDENTIALS }}
-          EOF
-
-      - name: Publish package
-        if: steps.releaseInfo.outputs.shouldRelease == 'yes'
-        run: dart pub publish -f
-
-      - name: Commit Release
-        if: steps.releaseInfo.outputs.shouldRelease == 'yes'
-        run: |
-          git diff
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git add .
-          git commit -m "chore(release): release for ${{ steps.nextVersion.outputs.value }}"
-          git push
-
-      - name: Create Release
-        if: steps.releaseInfo.outputs.shouldRelease == 'yes'
-        id: createRelease
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.nextVersion.outputs.value }}
-          release_name: Release ${{ steps.nextVersion.outputs.value }}
-          body: |
-            Changes in this Release
-
-            ${{ steps.changelog.outputs.summary }}
 
           draft: false
           prerelease: false
