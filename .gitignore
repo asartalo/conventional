@@ -15,3 +15,7 @@ doc/api/
 
 # Coverage
 /coverage/
+
+# Build Artifiacts
+RELEASE_SUMMARY.txt
+VERSION.txt
