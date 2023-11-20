@@ -136,8 +136,8 @@ jobs:
       - name: Setup credentials
         if: steps.releaseInfo.outputs.shouldRelease == 'yes'
         run: |
-          mkdir -p ~/.pub-cache
-          cat <<EOF > ~/.pub-cache/credentials.json
+          mkdir -p ~/.config/dart
+          cat <<EOF > ~/.config/dart/pub-credentials.json
           ${{ secrets.PUB_CREDENTIALS }}
           EOF
 
