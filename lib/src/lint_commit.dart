@@ -125,7 +125,7 @@ class LintRule {
   /// See [LintRule] constructor.
   String invalidMessage(LintContext context) {
     if (_invalidMessageFn is LintInvalidMessage) {
-      return _invalidMessageFn!(context);
+      return _invalidMessageFn(context);
     }
     return _invalidMessageString.toString();
   }

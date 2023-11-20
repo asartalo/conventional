@@ -63,12 +63,12 @@ class _CommitMetaGrammarDefinition extends GrammarDefinition {
 
   Parser<_Meta> meta() =>
       (ref0(authorLine) | ref0(dateLine) | ref0(genericMetaLine))
-          .separatedBy(newLine, includeSeparators: false)
-          .map((List<dynamic> parsed) {
+          .plusSeparated(newLine)
+          .map((list) {
         late CommitAuthor author;
         late DateTime date;
         final Map<String, String> others = {};
-        for (final val in parsed) {
+        for (final val in list.elements) {
           if (val is DateTime) {
             date = val;
           } else if (val is CommitAuthor) {
@@ -167,7 +167,8 @@ class _CommitLogGrammarDefinition extends GrammarDefinition {
 
   Parser<String> commitMessageSection() => ref0(indentedLine)
       .map((value) => (value is List<String>) ? value[1] : '')
-      .separatedBy(newLine, includeSeparators: true)
+      .plusSeparated(newLine)
+      .map((list) => list.elements)
       .plus()
       .flatten();
 

@@ -1,5 +1,3 @@
-library conventional;
-
 export 'src/buildless_version.dart';
 export 'src/changelog.dart';
 export 'src/commit.dart';

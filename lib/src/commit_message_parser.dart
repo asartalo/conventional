@@ -70,9 +70,10 @@ class _CommitMessageGrammarDefinition extends GrammarDefinition {
 
   Parser type() => ref0(id);
   Parser id() => (letter() & word().star()).flatten();
-  Parser scope() =>
-      (char('(') & ref0(id).separatedBy(char('-')).plus().flatten() & char(')'))
-          .map((values) => values[1]);
+  Parser scope() => (char('(') &
+          ref0(id).plusSeparated(char('-')).plus().flatten() &
+          char(')'))
+      .map((values) => values[1]);
   Parser description() => ref0(singleLineString);
 
   Parser body() => (ref0(footerSection).neg() | newLine).plus().flatten();
@@ -89,8 +90,10 @@ class _CommitMessageGrammarDefinition extends GrammarDefinition {
         return list;
       });
 
-  Parser footer() =>
-      ref0(footerLine).separatedBy(newLine, includeSeparators: false).plus();
+  Parser footer() => ref0(footerLine)
+      .plusSeparated(newLine)
+      .map((list) => list.elements)
+      .plus();
 
   Parser<CommitMessageFooter> footerLine() =>
       (ref0(footerToken) & ref0(footerSeparator) & ref0(footerValue)).map(
@@ -101,7 +104,7 @@ class _CommitMessageGrammarDefinition extends GrammarDefinition {
       );
   Parser footerToken() =>
       string('BREAKING CHANGE') |
-      ref0(id).separatedBy(char('-')).plus().flatten();
+      ref0(id).plusSeparated(char('-')).plus().flatten();
   Parser footerSeparator() =>
       string(': ', 'no : separator wut') | string(' #', 'no # separator wut');
   Parser footerValue() => ref0(singleLineString);
