@@ -122,7 +122,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.releaseInfo.outputs.version }}
+          tag_name: v${{ steps.releaseInfo.outputs.version }}
           release_name: Release ${{ steps.releaseInfo.outputs.version }}
           body: |
             Changes in this Release
@@ -131,16 +131,3 @@ jobs:
 
           draft: false
           prerelease: false
-
-      # Publish
-      - name: Setup credentials
-        if: steps.releaseInfo.outputs.shouldRelease == 'yes'
-        run: |
-          mkdir -p ~/.config/dart
-          cat <<EOF > ~/.config/dart/pub-credentials.json
-          ${{ secrets.PUB_CREDENTIALS }}
-          EOF
-
-      - name: Publish package
-        if: steps.releaseInfo.outputs.shouldRelease == 'yes'
-        run: dart pub publish -f
