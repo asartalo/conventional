@@ -138,10 +138,6 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Publish
-        if: steps.releaseInfo.outputs.shouldRelease == 'yes'
-        run: dart pub publish --force
-
   publish:
     name: Publish
     needs: release
