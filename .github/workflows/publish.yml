@@ -1,9 +1,9 @@
 name: Publish to pub.dev
 
-on:
-  push:
-    tags:
-    - 'v[0-9]+.[0-9]+.[0-9]+' # tag pattern on pub.dev: 'v'
+on: workflow_dispatch
+  # push:
+  #   tags:
+  #   - 'v[0-9]+.[0-9]+.[0-9]+' # tag pattern on pub.dev: 'v'
 
 # Publish using custom workflow
 jobs:

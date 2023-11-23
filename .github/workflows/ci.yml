@@ -137,11 +137,3 @@ jobs:
 
           draft: false
           prerelease: false
-
-  publish:
-    name: Publish
-    needs: release
-    permissions:
-      id-token: write
-    if: ${{ needs.release.outputs.shouldRelease == 'yes' }}
-    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
