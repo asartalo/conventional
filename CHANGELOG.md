@@ -1,3 +1,9 @@
+# 0.4.0 (2023-11-24)
+
+## BREAKING CHANGES
+
+- upgrade to dart 3 plus libraries esp. petitparser ([17517f6](commit/17517f6))
+
 # 0.3.1 (2022-07-27)
 
 ## Bug Fixes
