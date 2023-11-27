@@ -121,12 +121,20 @@ jobs:
           git commit -m "chore(release): release for ${{ steps.releaseInfo.outputs.version }}"
           git push
 
+      - name: GA Install Token
+        id: my-app
+        uses: getsentry/action-github-app-token@v2
+        with:
+          app_id: ${{ secrets.DELIVER_APP_ID }}
+          private_key: ${{ secrets.DELIVER_APP_PRIVATE_KEY }}
+
+
       - name: Create Release
         if: steps.releaseInfo.outputs.shouldRelease == 'yes'
         id: createRelease
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.my-app.outputs.token  }}
         with:
           tag_name: ${{ steps.releaseInfo.outputs.version }}
           release_name: Release ${{ steps.releaseInfo.outputs.version }}
