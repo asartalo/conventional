@@ -3,13 +3,12 @@ name: build
 on:
   push:
     branches: ["*"]
-  pull_request:
-    branches: ["*"]
 
 jobs:
   commitlint:
     name: Commit Lint
     runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, 'chore(release):')"
     steps:
       - uses: actions/checkout@v3
         with:
@@ -78,6 +77,7 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+          token: ${{ secrets.PAT }}
 
       - name: Get dependencies
         run: dart pub get
@@ -118,26 +118,18 @@ jobs:
           git config user.name github-actions
           git config user.email github-actions@github.com
           git add .
-          git commit -m "chore(release): release for ${{ steps.releaseInfo.outputs.version }}"
+          git commit -m "chore(release): prepare release for ${{ steps.releaseInfo.outputs.version }}"
           git push
-
-      - name: GA Install Token
-        id: my-app
-        uses: getsentry/action-github-app-token@v2
-        with:
-          app_id: ${{ secrets.DELIVER_APP_ID }}
-          private_key: ${{ secrets.DELIVER_APP_PRIVATE_KEY }}
-
 
       - name: Create Release
         if: steps.releaseInfo.outputs.shouldRelease == 'yes'
         id: createRelease
-        uses: actions/create-release@v1
+        uses: ncipollo/release-action@v1
         env:
-          GITHUB_TOKEN: ${{ steps.my-app.outputs.token  }}
+          GITHUB_TOKEN: ${{ secrets.PAT }}
         with:
-          tag_name: ${{ steps.releaseInfo.outputs.version }}
-          release_name: Release ${{ steps.releaseInfo.outputs.version }}
+          tag: ${{ steps.releaseInfo.outputs.version }}
+          name: Release ${{ steps.releaseInfo.outputs.version }}
           body: |
             Changes in this Release
 
