@@ -125,9 +125,8 @@ jobs:
         if: steps.releaseInfo.outputs.shouldRelease == 'yes'
         id: createRelease
         uses: ncipollo/release-action@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT }}
         with:
+          token: ${{ secrets.PAT }}
           tag: ${{ steps.releaseInfo.outputs.version }}
           name: Release ${{ steps.releaseInfo.outputs.version }}
           body: |
