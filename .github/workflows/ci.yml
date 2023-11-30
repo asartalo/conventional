@@ -3,6 +3,8 @@ name: build
 on:
   push:
     branches: ["*"]
+  pull_request:
+    branches: ["*"]
 
 jobs:
   commitlint:
@@ -61,7 +63,7 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     needs: test
-    if: ${{ needs.test.outputs.branch == 'main' }}
+    if: github.event_name != 'pull_request' && needs.test.outputs.branch == 'main'
     outputs:
       shouldRelease: ${{ steps.releaseInfo.outputs.shouldRelease }}
       version: ${{ steps.releaseInfo.outputs.version }}
