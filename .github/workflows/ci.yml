@@ -96,7 +96,7 @@ jobs:
       - name: Prepare release
         run: |
           release_tools prepare_release -w
-          cat VERSION.txt
+          cat VERSION.txt || echo "No Release"
 
       - name: Get Release Info
         id: releaseInfo
