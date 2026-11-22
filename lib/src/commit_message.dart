@@ -40,7 +40,7 @@ CommitMessageHeader _headerFromProps({
 ///
 /// See [conventionalcommits.org](https://www.conventionalcommits.org/) for more
 /// information on how to format commits. following the spec.
-class CommitMessage with EquatableMixin {
+class CommitMessage with Equatable {
   /// The commit message header
   ///
   /// This is the first line of a commit. For commits following the Conventional

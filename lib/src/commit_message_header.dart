@@ -21,7 +21,7 @@ abstract class CommitMessageHeader {
 }
 
 /// A commit header that follows the Conventional Commit spec
-class ConventionalHeader with EquatableMixin implements CommitMessageHeader {
+class ConventionalHeader with Equatable implements CommitMessageHeader {
   @override
   final String type;
   @override
@@ -31,7 +31,6 @@ class ConventionalHeader with EquatableMixin implements CommitMessageHeader {
   @override
   final String description;
 
-  // ignore: public_member_api_docs
   ConventionalHeader({
     required this.type,
     required this.scope,
@@ -50,7 +49,7 @@ class ConventionalHeader with EquatableMixin implements CommitMessageHeader {
 }
 
 /// A commit header that doesn't follow the Conventional Commit spec
-class RegularHeader with EquatableMixin implements CommitMessageHeader {
+class RegularHeader with Equatable implements CommitMessageHeader {
   @override
   String get type => '';
   @override

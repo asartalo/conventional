@@ -11,7 +11,7 @@ final _commitParser = CommitParser();
 final _commitLogsParser = CommitLogsParser();
 
 /// Represents a git commit item.
-class Commit with EquatableMixin {
+class Commit with Equatable {
   /// Represents the commit ID.
   ///
   /// Usually a SHA-1 hash (or SHA-256 if [it's implemented](https://git-scm.com/docs/hash-function-transition/).)

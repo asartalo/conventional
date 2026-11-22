@@ -2,8 +2,6 @@ import 'package:conventional/conventional.dart';
 import 'package:conventional/src/commit_message_footer.dart';
 import 'package:test/test.dart';
 
-// ignore_for_file: avoid_print
-
 void main() {
   group('Commit.parse()', () {
     group('successful parsing', () {

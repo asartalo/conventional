@@ -19,7 +19,7 @@ const _breakingKeys = <String>{
 /// Reviewed-by: James <james@somewhere.com>
 /// BREAKING CHANGE: changes behavior of sleep().
 /// ```
-class CommitMessageFooter with EquatableMixin {
+class CommitMessageFooter with Equatable {
   /// Footer key
   final String key;
 

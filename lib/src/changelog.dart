@@ -117,7 +117,7 @@ String? _changeSection(String header, List<Commit> commits) {
 /// A grouping of commit changes.
 ///
 /// Groups are for [bugFixes], [features], and [breakingChanges].
-class CommitSections with EquatableMixin {
+class CommitSections with Equatable {
   /// Bug fix commits
   final List<Commit> bugFixes = [];
 

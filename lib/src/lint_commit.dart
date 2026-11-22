@@ -5,14 +5,13 @@ import 'commit_message.dart';
 /// A configuration for linting rules
 ///
 /// Currently sparse at the moment.
-class LintConfig with EquatableMixin {
+class LintConfig with Equatable {
   /// The list of commit types allowed
   final Set<String> types;
 
   /// The maximum length of the header
   final int maxHeaderLength;
 
-  // ignore: public_member_api_docs
   const LintConfig({
     required this.types,
     required this.maxHeaderLength,
@@ -55,7 +54,7 @@ class LintConfig with EquatableMixin {
 }
 
 /// A result for a LintRule pass
-class LintResult with EquatableMixin {
+class LintResult with Equatable {
   /// Whether the message passed the rule
   final bool valid;
 
@@ -64,7 +63,6 @@ class LintResult with EquatableMixin {
   /// Should be empty if [valid] is true.
   final String message;
 
-  // ignore: public_member_api_docs
   const LintResult({
     required this.valid,
     required this.message,
@@ -99,7 +97,6 @@ class LintContext {
   /// The configuration used for the rules
   final LintConfig config;
 
-  // ignore: public_member_api_docs
   const LintContext({
     required this.commitStr,
     required this.message,
