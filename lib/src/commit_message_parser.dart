@@ -8,7 +8,6 @@ import 'parsing_elements.dart';
 /// A Parser for Commit Messages
 class CommitMessageParser {
   final Parser parser;
-  // ignore: public_member_api_docs
   CommitMessageParser()
       : parser = const _CommitMessageGrammarDefinition().build();
 
@@ -106,7 +105,7 @@ class _CommitMessageGrammarDefinition extends GrammarDefinition {
       string('BREAKING CHANGE') |
       ref0(id).plusSeparated(char('-')).plus().flatten();
   Parser footerSeparator() =>
-      string(': ', 'no : separator wut') | string(' #', 'no # separator wut');
+      string(': ', message: 'no : separator wut') | string(' #', message: 'no # separator wut');
   Parser footerValue() => ref0(singleLineString);
 
   Parser singleLineString() => newLine.neg().plus().flatten();
